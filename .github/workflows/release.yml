@@ -24,7 +24,7 @@ jobs:
         uses: svenstaro/upload-release-action@v1-release
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/pronote.js
-          asset_name: pronote.js
+          file: dist/heitzfit4.js
+          asset_name: heitzfit4.js
           tag: ${{ github.ref }}
           overwrite: true

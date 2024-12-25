@@ -40,7 +40,7 @@ const plugins = [
 
 export default [
   {
-    input: 'src/pronote.ts',
+    input: 'src/heitzfit4.ts',
     output: {
       dir: './dist',
       format: 'es',

@@ -4,7 +4,7 @@ const LitElement = Object.getPrototypeOf(
 const html = LitElement.prototype.html;
 const css = LitElement.prototype.css;
 
-class BasePronoteCardEditor extends LitElement {
+class Baseheitzfit4CardEditor extends LitElement {
     static get properties() {
         return {
             hass: {},
@@ -98,7 +98,7 @@ class BasePronoteCardEditor extends LitElement {
     }
 
     buildEntityPickerField(label, config_key, value, filter) {
-        const entityFilter = new RegExp("pronote_[a-z_]+_"+filter);
+        const entityFilter = new RegExp("heitzfit4_[a-z_]+_"+filter);
 
         return html`
             <ha-entity-picker
@@ -143,4 +143,4 @@ class BasePronoteCardEditor extends LitElement {
     }
 }
 
-export default BasePronoteCardEditor;
+export default Baseheitzfit4CardEditor;
