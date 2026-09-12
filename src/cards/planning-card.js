@@ -42,18 +42,22 @@ class heitzfit4PlanningCard extends LitElement {
             return;
         }
 
-        const service = activity.booked ? 'heitzfit_annuler_action' : 'heitzfit_reserver_action';
-        const domain = 'script';
         const data = {
             activity_id: String(activity.id)
         };
 
         try {
             if (this.hass.callService) {
-                this.hass.callService(domain, service, data);
+                this.hass.callService('heitzfit4', activity.booked ? 'delete_activity' : 'book_activity', data);
             }
         } catch (e) {
-            console.warn('Unable to call heitzfit service', e);
+            try {
+                if (this.hass.callService) {
+                    this.hass.callService('script', activity.booked ? 'heitzfit_annuler_action' : 'heitzfit_reserver_action', data);
+                }
+            } catch (e2) {
+                console.warn('Unable to call heitzfit action service', e2);
+            }
         }
     }
 
@@ -128,6 +132,58 @@ class heitzfit4PlanningCard extends LitElement {
         return new Intl.DateTimeFormat("fr-FR", {hour:"numeric", minute:"numeric"}).format(new Date(time));
     }
 
+    normalizePlanningPayload(payload) {
+        if (typeof payload === 'string') {
+            try {
+                payload = JSON.parse(payload);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        if (Array.isArray(payload)) {
+            return payload;
+        }
+
+        if (payload && typeof payload === 'object') {
+            if (Array.isArray(payload.Planning)) {
+                return payload.Planning;
+            }
+            if (Array.isArray(payload.planning)) {
+                return payload.planning;
+            }
+            if (Array.isArray(payload.activities)) {
+                return payload.activities;
+            }
+            if (Array.isArray(payload.data)) {
+                return payload.data;
+            }
+
+            const flat = [];
+            const recurse = (node) => {
+                if (Array.isArray(node)) {
+                    flat.push(...node);
+                    return;
+                }
+                if (!node || typeof node !== 'object') {
+                    return;
+                }
+                for (const key of Object.keys(node)) {
+                    const value = node[key];
+                    if (Array.isArray(value)) {
+                        flat.push(...value);
+                    } else if (value && typeof value === 'object') {
+                        recurse(value);
+                    }
+                }
+            };
+            recurse(payload);
+            return flat;
+        }
+
+        return [];
+    }
+
     getDayHeader(firstactivity, dayStartAt, dayEndAt, daysCount) {
         // return html`<div class="heitzfit4-Planning-header">
         //     ${this.config.enable_slider ? html`<span
@@ -170,8 +226,15 @@ class heitzfit4PlanningCard extends LitElement {
             return html``;
         }
 
-        const planningAttr = stateObj.attributes['Planning'] || stateObj.attributes['planning'] || [];
-        if (!planningAttr || planningAttr.length === 0) {
+        const planningAttr = this.normalizePlanningPayload(
+            stateObj.attributes['Planning'] ||
+            stateObj.attributes['planning'] ||
+            stateObj.attributes['activities'] ||
+            stateObj.attributes['data'] ||
+            stateObj.state || []
+        );
+
+        if (!Array.isArray(planningAttr) || planningAttr.length === 0) {
             return html``;
         }
 
