@@ -30,8 +30,6 @@ This card can be used with all reservation sensors.
 
 ### Booking
   
-![Booking card example](/doc/images/delays-card.png "Booking card example").
-  
 ```yaml
 type: custom:heitzfit4-booking-card
 entity: sensor.heitzfit4_booking

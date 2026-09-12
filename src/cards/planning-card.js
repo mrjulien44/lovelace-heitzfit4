@@ -365,15 +365,8 @@ class heitzfit4PlanningCard extends LitElement {
     static getStubConfig() {
         return {
             display_header: true,
-            // display_lunch_break: true,
-            // display_classroom: true,
-            // display_teacher: true,
-            // display_day_hours: true,
-            // dim_ended_activitys: true,
             max_days: null,
             current_week_only: false,
-            // enable_slider: false,
-            // display_free_time_slots: true,
         }
     }
 
