@@ -21,4 +21,4 @@ class heitzfit4PlanningCardEditor extends Baseheitzfit4CardEditor {
     }
 }
 
-customElements.define("heitzfit4-Planning-card-editor", heitzfit4PlanningCardEditor);
+customElements.define("heitzfit4-planning-card-editor", heitzfit4PlanningCardEditor);

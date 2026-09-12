@@ -353,15 +353,15 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     static getConfigElement() {
-        return document.createElement("heitzfit4-Planning-card-editor");
+        return document.createElement("heitzfit4-planning-card-editor");
     }
 }
 
-customElements.define("heitzfit4-Planning-card", heitzfit4PlanningCard);
+customElements.define("heitzfit4-planning-card", heitzfit4PlanningCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: "heitzfit4-Planning-card",
+    type: "heitzfit4-planning-card",
     name: "heitzfit4 Planning Card",
     description: "Display the Planning from heitzfit4",
     documentationURL: "https://github.com/mrjulien44/lovelace-heitzfit4?tab=readme-ov-file#Planning",
