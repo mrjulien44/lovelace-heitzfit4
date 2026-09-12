@@ -166,11 +166,16 @@ class heitzfit4PlanningCard extends LitElement {
         }
 
         const stateObj = this.hass.states[this.config.entity];
-        if (!stateObj || !stateObj.attributes || !stateObj.attributes['Planning']) {
+        if (!stateObj || !stateObj.attributes) {
             return html``;
         }
 
-        const activitys = stateObj.attributes['Planning'] || [];
+        const planningAttr = stateObj.attributes['Planning'] || stateObj.attributes['planning'] || [];
+        if (!planningAttr || planningAttr.length === 0) {
+            return html``;
+        }
+
+        const activitys = planningAttr;
         const visibleDays = this.config.days || this.config.max_days || 7;
 
         if (stateObj) {

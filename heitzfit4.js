@@ -48,15 +48,15 @@ import{unsafeHTML as e}from"https://unpkg.com/lit-html@2.8.0/directives/unsafe-h
                 class="heitzfit4-Planning-header-arrow-right"
                 @click=${e=>this.changeDay("next",e)}
             >→</span>`:""}
-        </div>`}render(){if(!this.config||!this.hass)return i``;const e=this.hass.states[this.config.entity];if(!e||!e.attributes||!e.attributes.Planning)return i``;const t=e.attributes.Planning||[],n=this.config.days||this.config.max_days||7;if(e){const e=(new Date).getWeekNumber(),a=[];let o=[],s=0,l=null,r=null;for(let d=0;d<t.length;d++){let c=t[d];if(this.config.only_booked&&!c.booked)continue;let h=this.getFormattedDate(c);if(null===l&&(l=c.start),r=c.end,c.canceled&&d<t.length-1){let e=t[d+1];if(c.start===e.start&&!e.canceled)continue}if(this.config.current_week_only&&new Date(c.start).getWeekNumber()>e)break;if(o.push(this.getPlanningRow(c)),d+1>=t.length||d+1<t.length&&h!==this.getFormattedDate(t[d+1])){if(a.push(i`
+        </div>`}render(){if(!this.config||!this.hass)return i``;const e=this.hass.states[this.config.entity];if(!e||!e.attributes)return i``;const t=e.attributes.Planning||e.attributes.planning||[];if(!t||0===t.length)return i``;const n=t,a=this.config.days||this.config.max_days||7;if(e){const e=(new Date).getWeekNumber(),t=[];let o=[],s=0,l=null,r=null;for(let d=0;d<n.length;d++){let c=n[d];if(this.config.only_booked&&!c.booked)continue;let h=this.getFormattedDate(c);if(null===l&&(l=c.start),r=c.end,c.canceled&&d<n.length-1){let e=n[d+1];if(c.start===e.start&&!e.canceled)continue}if(this.config.current_week_only&&new Date(c.start).getWeekNumber()>e)break;if(o.push(this.getPlanningRow(c)),d+1>=n.length||d+1<n.length&&h!==this.getFormattedDate(n[d+1])){if(t.push(i`
                         <div class="${this.config.enable_slider?"slider-enabled":""} heitzfit4-Planning-day-wrapper ${0===s?"active":""}">
                             ${this.getDayHeader(c,l,r,s)}
                             <table>${o}</table>
                         </div>
-                    `),o=[],this.lunchBreakRendered=!1,l=null,r=null,s++,n&&n<=s)break}else if(this.config.display_free_time_slots&&d+1<t.length){const e=new Date(c.end),i=t[d+1],n=new Date(i.start);if(c.is_morning===i.is_morning&&Math.floor((n-e)/1e3/60)>30){const e=new Date;o.push(this.getBreakRow("Pas de cours",this.config.dim_ended_activitys&&n<e))}}}return o.length>0&&a.push(i`<table>${o}</table>`),i`
+                    `),o=[],this.lunchBreakRendered=!1,l=null,r=null,s++,a&&a<=s)break}else if(this.config.display_free_time_slots&&d+1<n.length){const e=new Date(c.end),t=n[d+1],i=new Date(t.start);if(c.is_morning===t.is_morning&&Math.floor((i-e)/1e3/60)>30){const e=new Date;o.push(this.getBreakRow("Pas de cours",this.config.dim_ended_activitys&&i<e))}}}return o.length>0&&t.push(i`<table>${o}</table>`),i`
                 <ha-card id="${this.config.entity}-card" class="${this.config.enable_slider?"heitzfit4-Planning-card-slider":""}">
                     ${this.config.display_header?this.getCardHeader():""}
-                    ${a}
+                    ${t}
                 </ha-card>`}}setConfig(e){if(!e.entity)throw new Error("You need to define an entity");this.config={entity:null,display_header:!0,days:7,max_days:null,only_booked:!1,show_actions:!0,...e}}static get styles(){return n`
         .heitzfit4-card-header {
             text-align:center;
