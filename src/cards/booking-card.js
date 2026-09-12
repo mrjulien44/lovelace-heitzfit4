@@ -13,7 +13,7 @@ Date.prototype.getWeekNumber = function () {
     return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 8.64e7) + 1) / 7);
 };
 
-class heitzfit4reservationCard extends LitElement {
+class heitzfit4bookingCard extends LitElement {
 
     lunchBreakRendered = false;
 
@@ -25,7 +25,7 @@ class heitzfit4reservationCard extends LitElement {
     }
 
     getCardHeader() {
-        let child_sensor = this.config.entity.split('_reservation')[0];
+        let child_sensor = this.config.entity.split('_booking')[0];
         let child_attributes = this.hass.states[child_sensor].attributes;
         let child_name = (typeof child_attributes['nickname'] === 'string' && child_attributes['nickname'] !== '') ? child_attributes['nickname'] : child_attributes['full_name'];
         return html`<div class="heitzfit4-card-header">Devoirs de ${child_name}</div>`;
@@ -42,36 +42,36 @@ class heitzfit4reservationCard extends LitElement {
         return new Intl.DateTimeFormat("fr-FR", {hour:"numeric", minute:"numeric"}).format(new Date(time));
     }
 
-    getDayHeader(reservation) {
-        return html`<div class="heitzfit4-reservation-header">
-            <span>${this.getFormattedDate(reservation.date)}</span>
+    getDayHeader(booking) {
+        return html`<div class="heitzfit4-booking-header">
+            <span>${this.getFormattedDate(booking.date)}</span>
         </div>`;
     }
 
-    getreservationRow(reservation, index) {
-        let description = reservation.description.trim().replace("\n", "<br />");
+    getbookingRow(booking, index) {
+        let description = booking.description.trim().replace("\n", "<br />");
         let files = [];
-        reservation.files.forEach((file) => {
+        booking.files.forEach((file) => {
             if (file.name.trim() === '') {
                 return;
             }
-            files.push(html`<span class="reservation-file">➤ <a href="${file.url}">${file.name}</a></span>`);
+            files.push(html`<span class="booking-file">➤ <a href="${file.url}">${file.name}</a></span>`);
         });
 
 
         return html`
-        <tr class="${reservation.done ? 'reservation-done':''}">
-            <td class="reservation-color"><span style="background-color:${reservation.background_color}"></span></td>
-            <td class="reservation-detail">
-                <label for="reservation-${index}">
-                    <span class="reservation-subject">${reservation.subject}</span>
+        <tr class="${booking.done ? 'booking-done':''}">
+            <td class="booking-color"><span style="background-color:${booking.background_color}"></span></td>
+            <td class="booking-detail">
+                <label for="booking-${index}">
+                    <span class="booking-subject">${booking.subject}</span>
                 </label>
-                <input type="checkbox" id="reservation-${index}" />
-                <span class="reservation-description">${unsafeHTML(description)}</span>
-                ${files.length > 0 ? html`<span class="reservation-files">${files}</span>` : ''}
+                <input type="checkbox" id="booking-${index}" />
+                <span class="booking-description">${unsafeHTML(description)}</span>
+                ${files.length > 0 ? html`<span class="booking-files">${files}</span>` : ''}
             </td>
-            <td class="reservation-status">
-                <span>${reservation.done ? html`<ha-icon icon="mdi:check"></ha-icon>` : html`<ha-icon icon="mdi:account-clock"></ha-icon>`}</span>
+            <td class="booking-status">
+                <span>${booking.done ? html`<ha-icon icon="mdi:check"></ha-icon>` : html`<ha-icon icon="mdi:account-clock"></ha-icon>`}</span>
             </td>
         </tr>
         `;
@@ -83,51 +83,51 @@ class heitzfit4reservationCard extends LitElement {
         }
 
         const stateObj = this.hass.states[this.config.entity];
-        const reservation = this.hass.states[this.config.entity].attributes['reservation'];
+        const booking = this.hass.states[this.config.entity].attributes['booking'];
 
         if (stateObj) {
             const currentWeekNumber = new Date().getWeekNumber();
             const itemTemplates = [];
             let dayTemplates = [];
 
-            if (reservation && reservation.length > 0) {
-                let latestreservationDay = this.getFormattedDate(reservation[0].date);
-                for (let index = 0; index < reservation.length; index++) {
-                    let hw = reservation[index];
+            if (booking && booking.length > 0) {
+                let latestbookingDay = this.getFormattedDate(booking[0].date);
+                for (let index = 0; index < booking.length; index++) {
+                    let hw = booking[index];
                     let currentFormattedDate = this.getFormattedDate(hw.date);
 
-                    if (hw.done === true && this.config.display_done_reservation === false) {
+                    if (hw.done === true && this.config.display_done_booking === false) {
                         continue;
                     }
 
-                    if (latestreservationDay !== currentFormattedDate) {
+                    if (latestbookingDay !== currentFormattedDate) {
                         if (dayTemplates.length > 0) {
-                            itemTemplates.push(this.getDayHeader(reservation[index-1]));
-                            itemTemplates.push(html`<table class="${this.config.reduce_done_reservation ? 'reduce-done' : ''}">${dayTemplates}</table>`);
+                            itemTemplates.push(this.getDayHeader(booking[index-1]));
+                            itemTemplates.push(html`<table class="${this.config.reduce_done_booking ? 'reduce-done' : ''}">${dayTemplates}</table>`);
                             dayTemplates = [];
                         }
 
-                        latestreservationDay = currentFormattedDate;
+                        latestbookingDay = currentFormattedDate;
                     }
 
                     if (this.config.current_week_only && new Date(hw.date).getWeekNumber() !== currentWeekNumber) {
                         break;
                     }
 
-                    dayTemplates.push(this.getreservationRow(hw, index));
+                    dayTemplates.push(this.getbookingRow(hw, index));
                 }
 
                 if (dayTemplates.length > 0 && (
                     !this.config.current_week_only
-                    || (this.config.current_week_only && currentWeekNumber === new Date(reservation[reservation.length-1].date).getWeekNumber())
+                    || (this.config.current_week_only && currentWeekNumber === new Date(booking[booking.length-1].date).getWeekNumber())
                 )) {
-                    itemTemplates.push(this.getDayHeader(reservation[reservation.length-1]));
-                    itemTemplates.push(html`<table class="${this.config.reduce_done_reservation ? 'reduce-done' : ''}">${dayTemplates}</table>`);
+                    itemTemplates.push(this.getDayHeader(booking[booking.length-1]));
+                    itemTemplates.push(html`<table class="${this.config.reduce_done_booking ? 'reduce-done' : ''}">${dayTemplates}</table>`);
                 }
             }
 
             if (itemTemplates.length === 0) {
-                itemTemplates.push(html`<span class="no-reservation">Pas de devoirs à faire</span>`);
+                itemTemplates.push(html`<span class="no-booking">Pas de devoirs à faire</span>`);
             }
 
             return html`
@@ -148,8 +148,8 @@ class heitzfit4reservationCard extends LitElement {
             entity: null,
             display_header: true,
             current_week_only: true,
-            reduce_done_reservation: true,
-            display_done_reservation: true,
+            reduce_done_booking: true,
+            display_done_booking: true,
         }
 
         this.config = {
@@ -168,13 +168,13 @@ class heitzfit4reservationCard extends LitElement {
             font-weight:bold;
             font-size:1em;
         }
-        .no-reservation {
+        .no-booking {
             display:block;
             padding:8px;
             text-align: center;
             font-style: italic;
         }
-        .heitzfit4-reservation-header {
+        .heitzfit4-booking-header {
             border-bottom: 2px solid grey;
         }
         table{
@@ -190,48 +190,48 @@ class heitzfit4reservationCard extends LitElement {
             padding-top: 8px;
             text-align: left;
         }
-        td.reservation-color {
+        td.booking-color {
             width: 4px;
             padding-top: 11px;
         }
-        td.reservation-color > span {
+        td.booking-color > span {
             display:inline-block;
             width: 4px;
             height: 1rem;
             border-radius:4px;
             background-color: grey;
         }
-        td.reservation-detail {
+        td.booking-detail {
             padding:0;
             padding-top: 8px;
             padding-bottom: 8px;
         }
-        span.reservation-subject {
+        span.booking-subject {
             display:block;
             font-weight:bold;
         }
-        span.reservation-description {
+        span.booking-description {
             font-size: 0.9em;
         }
-        span.reservation-files {
+        span.booking-files {
             display: block;
         }
-        span.reservation-files .reservation-file {
+        span.booking-files .booking-file {
             display: inline-block;
         }
-        td.reservation-status {
+        td.booking-status {
             width: 5%;
         }
-        .reduce-done .reservation-done label:hover {
+        .reduce-done .booking-done label:hover {
             cusor: pointer;
         }
-        .reduce-done .reservation-done .reservation-description {
+        .reduce-done .booking-done .booking-description {
             display: none;
         }
-        .reduce-done .reservation-done input:checked + .reservation-description {
+        .reduce-done .booking-done input:checked + .booking-description {
             display: block;
         }
-        .reservation-detail input {
+        .booking-detail input {
             display: none;
         }
         `;
@@ -241,22 +241,22 @@ class heitzfit4reservationCard extends LitElement {
         return {
             display_header: true,
             current_week_only: true,
-            reduce_done_reservation: true,
-            display_done_reservation: true,
+            reduce_done_booking: true,
+            display_done_booking: true,
         }
     }
 
     static getConfigElement() {
-        return document.createElement("heitzfit4-reservation-card-editor");
+        return document.createElement("heitzfit4-booking-card-editor");
     }
 }
 
-customElements.define("heitzfit4-reservation-card", heitzfit4reservationCard);
+customElements.define("heitzfit4-booking-card", heitzfit4bookingCard);
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-    type: "heitzfit4-reservation-card",
-    name: "heitzfit4 reservation Card",
-    description: "Display the reservation from heitzfit4",
-    documentationURL: "https://github.com/delphiki/lovelace-heitzfit4?tab=readme-ov-file#reservation",
+    type: "heitzfit4-booking-card",
+    name: "heitzfit4 booking Card",
+    description: "Display the booking from heitzfit4",
+    documentationURL: "https://github.com/delphiki/lovelace-heitzfit4?tab=readme-ov-file#booking",
 });

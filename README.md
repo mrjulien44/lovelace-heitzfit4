@@ -6,7 +6,7 @@ A few cards to help display informations from the [heitzfit4 integration for Hom
 
 ### Using HACS
 
-Add this repository to HACS : https://github.com/delphiki/lovelace-heitzfit4.git
+Add this repository to HACS : https://github.com/mrjulien44/lovelace-heitzfit4.git
 then:  
 HACS > Lovelace > **heitzfit4 Cards**
 
@@ -20,13 +20,10 @@ HACS > Lovelace > **heitzfit4 Cards**
 type: custom:heitzfit4-planning-card
 entity: sensor.heitzfit4_planning
 display_header: true
-display_done_reservation: true
-reduce_done_reservation: true
+display_done_booking: true
+reduce_done_booking: true
 current_week_only: false
 ```
-
-This card can be used with all reservation sensors.
-
 
 ### Booking
   

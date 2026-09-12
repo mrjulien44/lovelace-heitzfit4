@@ -23,16 +23,12 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getCardHeader() {
-        // let child_sensor = this.config.entity.split('_Planning')[0];
-        // let child_attributes = this.hass.states[child_sensor].attributes;
-        // let child_name = (typeof child_attributes['nickname'] === 'string' && child_attributes['nickname'] !== '') ? child_attributes['nickname'] : child_attributes['full_name'];
         return html`<div class="heitzfit4-card-header">Panning Global</div>`;
-        // return html`<div class="heitzfit4-card-header">Panning Global FitEmploi du temps de ${child_name}</div>`;
     }
 
-    getBreakRow(label, ended) {
+    getBreakRow(label) {
         return html`
-        <tr class="lunch-break ${ended ? 'activity-ended' : ''}">
+        <tr class="activity-ended">
             <td></td>
             <td><span></span></td>
             <td colspan="2">
@@ -41,50 +37,81 @@ class heitzfit4PlanningCard extends LitElement {
         </tr>`;
     }
 
+    handleAction(activity) {
+        if (!this.hass || !this.config.show_actions) {
+            return;
+        }
+
+        const service = activity.booked ? 'heitzfit_annuler_action' : 'heitzfit_reserver_action';
+        const domain = 'script';
+        const data = {
+            activity_id: String(activity.id)
+        };
+
+        try {
+            if (this.hass.callService) {
+                this.hass.callService(domain, service, data);
+            }
+        } catch (e) {
+            console.warn('Unable to call heitzfit service', e);
+        }
+    }
+
+    getActionLink(activity) {
+        if (!this.config.show_actions) {
+            return html``;
+        }
+
+        const canBook = activity.placesTaken !== undefined && activity.placesMax !== undefined &&
+            Number(activity.placesTaken) < Number(activity.placesMax);
+
+        if (activity.booked) {
+            return html`
+                <button class="heitzfit4-action-button" @click=${() => this.handleAction(activity)}>
+                    <ha-icon icon="mdi:minus-circle"></ha-icon>
+                </button>
+            `;
+        }
+
+        if (canBook) {
+            return html`
+                <button class="heitzfit4-action-button" @click=${() => this.handleAction(activity)}>
+                    <ha-icon icon="mdi:plus-circle"></ha-icon>
+                </button>
+            `;
+        }
+
+        return html``;
+    }
+
     getPlanningRow(activity) {
         let currentDate = new Date();
         let startAt = Date.parse(activity.start);
         let endAt = Date.parse(activity.end);
 
         let prefix = html``;
-        // if (this.config.display_lunch_break && activity.is_afternoon && !this.lunchBreakRendered) {
-        //     prefix = this.getBreakRow('Repas', this.config.dim_ended_activitys && startAt < currentDate);
-        //     this.lunchBreakRendered = true;
-        // }
 
-        // let content = html`
-        // <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''}">
-        // <tr class="''} ${endAt < currentDate ? 'activity-ended' : ''}">
-        //     <td>
-        //         ${activity.start_time}<br />
-        //         ${activity.end_time}
-        //     </td>
-        //     <td><span style="background-color:${activity.background_color}"></span></td>
-        //     <td>
-        //         <span class="activity-name">${activity.activity}</span>
-        //         ${this.config.display_classroom ? html`<span class="activity-classroom">
-        //             ${activity.classroom ? 'Salle '+activity.classroom : ''}
-        //             ${activity.classroom && this.config.display_teacher ? ', ' : '' }
-        //         </span>` : '' }
-        //         ${this.config.display_teacher ? html`<span class="activity-teacher">
-        //             ${activity.teacher_name}
-        //         </span>`: '' }
-        //     </td>
-        //     <td>
-        //         ${activity.status ? html`<span class="activity-status">${activity.status}</span>`:''}
-        //     </td>
-        // </tr>
-        // `
         let content = html`
-        <tr class="''} ${endAt < currentDate ? 'activity-ended' : ''}">
+        <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''}">
             <td>
                 ${activity.start_time}<br />
                 ${activity.end_time}
             </td>
-            <td><span style="background-color:pink"></span></td>
+            <td><span style="background-color:${activity.background_color || 'pink'}"></span></td>
             <td>
+                <span class="activity-name">${activity.activity}</span>
+                ${this.config.display_classroom ? html`<span class="activity-classroom">
+                    ${activity.room ? 'Salle '+activity.room : ''}
+                </span>` : '' }
+                ${this.config.display_teacher ? html`<span class="activity-teacher">
+                    ${activity.teacher_name || ''}
+                </span>`: '' }
+            </td>
+            <td>
+                ${activity.status ? html`<span class="activity-status">${activity.status}</span>`:''}
                 ${activity.booked ? html`<span class="activity-status">Réservé</span>`:''}
             </td>
+            ${this.config.show_actions ? html`<td class="activity-actions">${this.getActionLink(activity)}</td>` : ''}
         </tr>
         `
         return html`${prefix}${content}`;
@@ -133,51 +160,20 @@ class heitzfit4PlanningCard extends LitElement {
         </div>`;
     }
 
-    changeDay(direction, e) {
-        e.preventDefault();
-        if (e.target.classList.contains('disabled')) {
-            return;
-        }
-
-        const activeDay = e.target.parentElement.parentElement;
-        let hasPreviousDay = activeDay.previousElementSibling && activeDay.previousElementSibling.classList.contains('heitzfit4-Planning-day-wrapper');
-        let hasNextDay = activeDay.nextElementSibling && activeDay.nextElementSibling.classList.contains('heitzfit4-Planning-day-wrapper');
-        let newActiveDay = null;
-
-        if (direction === 'previous' && hasPreviousDay) {
-            newActiveDay = activeDay.previousElementSibling;
-        } else if (direction === 'next' && hasNextDay) {
-            newActiveDay = activeDay.nextElementSibling;
-        }
-
-        if (newActiveDay) {
-            activeDay.classList.remove('active');
-            newActiveDay.classList.add('active');
-
-            hasPreviousDay = newActiveDay.previousElementSibling && newActiveDay.previousElementSibling.classList.contains('heitzfit4-Planning-day-wrapper');
-            hasNextDay = newActiveDay.nextElementSibling && newActiveDay.nextElementSibling.classList.contains('heitzfit4-Planning-day-wrapper');
-
-            if (!hasPreviousDay) {
-                newActiveDay.querySelector('.heitzfit4-Planning-header-arrow-left').classList.add('disabled');
-            }
-
-            if (!hasNextDay) {
-                newActiveDay.querySelector('.heitzfit4-Planning-header-arrow-right').classList.add('disabled');
-            }
-        }
-    }
-
     render() {
         if (!this.config || !this.hass) {
             return html``;
         }
 
         const stateObj = this.hass.states[this.config.entity];
+        if (!stateObj || !stateObj.attributes || !stateObj.attributes['Planning']) {
+            return html``;
+        }
 
-        const activitys = this.hass.states[this.config.entity].attributes['activitys']
+        const activitys = stateObj.attributes['Planning'] || [];
+        const visibleDays = this.config.days || this.config.max_days || 7;
 
         if (stateObj) {
-            this.lunchBreakRendered = false;
             const currentWeekNumber = new Date().getWeekNumber();
 
             const itemTemplates = [];
@@ -189,14 +185,17 @@ class heitzfit4PlanningCard extends LitElement {
 
             for (let index = 0; index < activitys.length; index++) {
                 let activity = activitys[index];
+
+                if (this.config.only_booked && !activity.booked) {
+                    continue;
+                }
+
                 let currentFormattedDate = this.getFormattedDate(activity);
 
-                if (!activity.canceled) {
-                    if (dayStartAt === null) {
-                        dayStartAt = activity.start;
-                    }
-                    dayEndAt = activity.end;
+                if (dayStartAt === null) {
+                    dayStartAt = activity.start;
                 }
+                dayEndAt = activity.end;
 
                 if (activity.canceled && index < activitys.length - 1) {
                     let nextactivity = activitys[index + 1];
@@ -228,7 +227,7 @@ class heitzfit4PlanningCard extends LitElement {
                     dayEndAt = null;
 
                     daysCount++;
-                    if (this.config.max_days && this.config.max_days <= daysCount) {
+                    if (visibleDays && visibleDays <= daysCount) {
                         break;
                     }
                 } else if (this.config.display_free_time_slots && index + 1 < activitys.length) {
@@ -263,7 +262,10 @@ class heitzfit4PlanningCard extends LitElement {
         const defaultConfig = {
             entity: null,
             display_header: true,
+            days: 7,
             max_days: null,
+            only_booked: false,
+            show_actions: true,
         }
 
         this.config = {
@@ -274,26 +276,6 @@ class heitzfit4PlanningCard extends LitElement {
 
     static get styles() {
         return css`
-        .heitzfit4-Planning-card-slider .heitzfit4-Planning-day-wrapper {
-            display: none;
-        }
-        .heitzfit4-Planning-card-slider .heitzfit4-Planning-day-wrapper.active {
-            display: block;
-        }
-        .heitzfit4-Planning-card-slider .heitzfit4-Planning-header-date {
-            display: inline-block;
-            text-align: center;
-            width: 120px;
-        }
-        .heitzfit4-Planning-header-arrow-left,
-        .heitzfit4-Planning-header-arrow-right {
-            cursor: pointer;
-        }
-        .heitzfit4-Planning-header-arrow-left.disabled,
-        .heitzfit4-Planning-header-arrow-right.disabled {
-            opacity: 0.3;
-            pointer-events: none;
-        }
         .heitzfit4-card-header {
             text-align:center;
         }
