@@ -249,9 +249,9 @@ class heitzfit4PlanningCard extends LitElement {
 
         const activitys = planningAttr;
         const visibleDays = this.config.days || this.config.max_days || 7;
-        const onlyBooked = this.config.only_booked === 'booked'
-            ? true
-            : this.normalizeBoolean(this.config.only_booked, false);
+        const onlyBookedToken = typeof this.config.only_booked === 'string'
+            && this.config.only_booked.trim().toLowerCase() === 'booked';
+        const onlyBooked = onlyBookedToken || this.normalizeBoolean(this.config.only_booked, false);
         const showActions = this.normalizeBoolean(this.config.show_actions, true);
 
         if (stateObj) {
@@ -346,9 +346,6 @@ class heitzfit4PlanningCard extends LitElement {
             }
             if (['false', '0', 'off', 'no'].includes(normalized)) {
                 return false;
-            }
-            if (normalized === 'booked') {
-                return true;
             }
         }
         return fallback;
