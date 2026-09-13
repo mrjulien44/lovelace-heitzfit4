@@ -19,13 +19,17 @@ class Baseheitzfit4CardEditor extends LitElement {
 
     _valueChanged(ev) {
         const _config = Object.assign({}, this._config);
+        const target = ev.target;
+        const configKey = target.configValue || target.name;
 
-        if (typeof ev.target.__checked !== 'undefined') {
-            _config[ev.target.configValue] = ev.target.__checked;
+        if (target.tagName === 'HA-SWITCH' || typeof target.checked === 'boolean') {
+            _config[configKey] = Boolean(target.checked);
+        } else if (typeof target.__checked === 'boolean') {
+            _config[configKey] = Boolean(target.__checked);
         } else {
-            _config[ev.target.configValue] = ev.target.value == '' ? null : ev.target.value;
+            _config[configKey] = target.value == '' ? null : target.value;
         }
-        
+
         this._config = _config;
 
         const event = new CustomEvent("config-changed", {

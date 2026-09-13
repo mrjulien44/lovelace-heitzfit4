@@ -93,19 +93,24 @@ class heitzfit4PlanningCard extends LitElement {
         let startAt = Date.parse(activity.start);
         let endAt = Date.parse(activity.end);
 
+        const displayStart = activity.start_time || this.getFormattedTime(activity.start);
+        const displayEnd = activity.end_time || this.getFormattedTime(activity.end);
+        const displayRoom = activity.room || activity.classroom || activity.location || '';
+        const displayName = activity.activity || activity.name || activity.title || activity.session || '';
+
         let prefix = html``;
 
         let content = html`
         <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''}">
             <td>
-                ${activity.start_time}<br />
-                ${activity.end_time}
+                ${displayStart}<br />
+                ${displayEnd}
             </td>
             <td><span style="background-color:${activity.background_color || 'pink'}"></span></td>
             <td>
-                <span class="activity-name">${activity.activity}</span>
+                <span class="activity-name">${displayName}</span>
                 ${this.config.display_classroom ? html`<span class="activity-classroom">
-                    ${activity.room ? 'Salle '+activity.room : ''}
+                    ${displayRoom ? 'Salle '+displayRoom : ''}
                 </span>` : '' }
                 ${this.config.display_teacher ? html`<span class="activity-teacher">
                     ${activity.teacher_name || ''}
@@ -330,6 +335,8 @@ class heitzfit4PlanningCard extends LitElement {
         const defaultConfig = {
             entity: null,
             display_header: true,
+            display_classroom: true,
+            display_teacher: false,
             days: 7,
             max_days: null,
             only_booked: false,
