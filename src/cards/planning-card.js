@@ -151,7 +151,15 @@ class heitzfit4PlanningCard extends LitElement {
             if (Array.isArray(value)) {
                 flat.push(...value);
             } else if (value && typeof value === 'object') {
-                flat.push(...this.flattenPlanningObject(value));
+                if (Array.isArray(value.activities)) {
+                    flat.push(...value.activities);
+                } else if (Array.isArray(value.Planning)) {
+                    flat.push(...value.Planning);
+                } else if (Array.isArray(value.planning)) {
+                    flat.push(...value.planning);
+                } else {
+                    flat.push(...this.flattenPlanningObject(value));
+                }
             }
         });
 
@@ -190,6 +198,13 @@ class heitzfit4PlanningCard extends LitElement {
             }
             if (payload.Planning && typeof payload.Planning === 'object') {
                 return this.flattenPlanningObject(payload.Planning);
+            }
+
+            // Direct date-keyed object such as: { '2026-09-14': [ { activity: ... } ] }
+            const objectKeys = Object.keys(payload);
+            const hasDateArrayShape = objectKeys.some((key) => Array.isArray(payload[key]));
+            if (hasDateArrayShape) {
+                return this.flattenPlanningObject(payload);
             }
 
             const flat = [];
