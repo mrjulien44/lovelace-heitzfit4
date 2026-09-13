@@ -28,7 +28,7 @@ class heitzfit4PlanningCard extends LitElement {
 
     getBreakRow(label) {
         return html`
-        <tr class="activity-ended">
+        <tr class="lunch-break">
             <td></td>
             <td><span></span></td>
             <td colspan="2">
@@ -97,8 +97,8 @@ class heitzfit4PlanningCard extends LitElement {
         let startAt = Date.parse(activity.start);
         let endAt = Date.parse(activity.end);
 
-        const displayStart = activity.start_time || this.getFormattedTime(activity.start);
-        const displayEnd = activity.end_time || this.getFormattedTime(activity.end);
+        const displayStart = this.getFormattedTime(activity.start);
+        const displayEnd = this.getFormattedTime(activity.end);
         const displayRoom = activity.room || activity.classroom || activity.location || '';
         const displayName = activity.activity || activity.name || activity.title || activity.session || '';
 
@@ -110,15 +110,13 @@ class heitzfit4PlanningCard extends LitElement {
                 ${displayStart}<br />
                 ${displayEnd}
             </td>
-            <td><span style="background-color:${activity.background_color || 'pink'}"></span></td>
+            <td><span style="background-color:${activity.booked ? '#43B061' : (activity.background_color || '#7d7d7d')}"></span></td>
             <td>
                 <span class="activity-name">${displayName}</span>
-                ${this.config.display_classroom ? html`<span class="activity-classroom">
+                ${this.normalizeBoolean(this.config.display_classroom, true) ? html`<span class="activity-classroom">
                     ${displayRoom ? 'Salle '+displayRoom : ''}
+                    ${displayRoom ? ', ' : ''}
                 </span>` : '' }
-                ${this.config.display_teacher ? html`<span class="activity-teacher">
-                    ${activity.teacher_name || ''}
-                </span>`: '' }
             </td>
             <td>
                 ${activity.status ? html`<span class="activity-status">${activity.status}</span>`:''}
@@ -139,6 +137,25 @@ class heitzfit4PlanningCard extends LitElement {
 
     getFormattedTime(time) {
         return new Intl.DateTimeFormat("fr-FR", {hour:"numeric", minute:"numeric"}).format(new Date(time));
+    }
+
+    flattenPlanningObject(source) {
+        const flat = [];
+
+        if (!source || typeof source !== 'object') {
+            return flat;
+        }
+
+        Object.keys(source).forEach((key) => {
+            const value = source[key];
+            if (Array.isArray(value)) {
+                flat.push(...value);
+            } else if (value && typeof value === 'object') {
+                flat.push(...this.flattenPlanningObject(value));
+            }
+        });
+
+        return flat;
     }
 
     normalizePlanningPayload(payload) {
@@ -168,6 +185,13 @@ class heitzfit4PlanningCard extends LitElement {
                 return payload.data;
             }
 
+            if (payload.planning && typeof payload.planning === 'object') {
+                return this.flattenPlanningObject(payload.planning);
+            }
+            if (payload.Planning && typeof payload.Planning === 'object') {
+                return this.flattenPlanningObject(payload.Planning);
+            }
+
             const flat = [];
             const recurse = (node) => {
                 if (Array.isArray(node)) {
@@ -194,34 +218,13 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getDayHeader(firstactivity, dayStartAt, dayEndAt, daysCount) {
-        // return html`<div class="heitzfit4-Planning-header">
-        //     ${this.config.enable_slider ? html`<span
-        //         class="heitzfit4-Planning-header-arrow-left ${daysCount === 0 ? 'disabled' : ''}"
-        //         @click=${(e) => this.changeDay('previous', e)}
-        //     >←</span>` : '' }
-        //     <span class="heitzfit4-Planning-header-date">${this.getFormattedDate(firstactivity)}</span>
-        //     ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="heitzfit4-Planning-header-hours">
-        //     ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="heitzfit4-Planning-header-hours">
-        //         ${this.getFormattedTime(dayStartAt)} - ${this.getFormattedTime(dayEndAt)}
-        //     </span>` : '' }
-        //     ${this.config.enable_slider ? html`<span
-        //         class="heitzfit4-Planning-header-arrow-right"
-        //         @click=${(e) => this.changeDay('next', e)}
-        //     >→</span>` : '' }
-        // </div>`;
-        return html`<div class="heitzfit4-Planning-header">
-            ${this.config.enable_slider ? html`<span
-                class="heitzfit4-Planning-header-arrow-left ${daysCount === 0 ? 'disabled' : ''}"
-                @click=${(e) => this.changeDay('previous', e)}
-            >←</span>` : '' }
-            <span class="heitzfit4-Planning-header-date">${this.getFormattedDate(firstactivity)}</span>
-            ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="heitzfit4-Planning-header-hours">
-                ${this.getFormattedTime(dayStartAt)} - ${this.getFormattedTime(dayEndAt)}
-            </span>` : '' }
-            ${this.config.enable_slider ? html`<span
-                class="heitzfit4-Planning-header-arrow-right"
-                @click=${(e) => this.changeDay('next', e)}
-            >→</span>` : '' }
+        return html`<div class="pronote-timetable-day-wrapper ${daysCount === 0 ? 'active' : ''}">
+            <div class="pronote-timetable-header">
+                <span class="pronote-timetable-header-date">${this.getFormattedDate(firstactivity)}</span>
+                ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="pronote-timetable-header-hours">
+                    ${this.getFormattedTime(dayStartAt)} - ${this.getFormattedTime(dayEndAt)}
+                </span>` : '' }
+            </div>
         </div>`;
     }
 
