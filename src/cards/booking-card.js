@@ -139,6 +139,22 @@ class heitzfit4bookingCard extends LitElement {
         }
     }
 
+    normalizeBoolean(value, fallback) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            if (['true', '1', 'on', 'yes'].includes(normalized)) {
+                return true;
+            }
+            if (['false', '0', 'off', 'no'].includes(normalized)) {
+                return false;
+            }
+        }
+        return fallback;
+    }
+
     setConfig(config) {
         if (!config.entity) {
             throw new Error('You need to define an entity');
@@ -156,6 +172,11 @@ class heitzfit4bookingCard extends LitElement {
             ...defaultConfig,
             ...config
         };
+
+        this.config.current_week_only = this.normalizeBoolean(this.config.current_week_only, true);
+        this.config.reduce_done_booking = this.normalizeBoolean(this.config.reduce_done_booking, true);
+        this.config.display_done_booking = this.normalizeBoolean(this.config.display_done_booking, true);
+        this.config.display_header = this.normalizeBoolean(this.config.display_header, true);
     }
 
     static get styles() {

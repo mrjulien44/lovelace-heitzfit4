@@ -22,11 +22,11 @@ class Baseheitzfit4CardEditor extends LitElement {
         const target = ev.target;
         const configKey = target.configValue || target.name;
 
-        if (target.tagName === 'HA-SWITCH' || typeof target.checked === 'boolean') {
-            _config[configKey] = Boolean(target.checked);
+        if (typeof target.checked === 'boolean') {
+            _config[configKey] = target.checked;
         } else if (typeof target.__checked === 'boolean') {
-            _config[configKey] = Boolean(target.__checked);
-        } else {
+            _config[configKey] = target.__checked;
+        } else if (typeof target.value === 'string' || typeof target.value === 'number') {
             _config[configKey] = target.value == '' ? null : target.value;
         }
 

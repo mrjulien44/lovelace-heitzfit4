@@ -38,7 +38,7 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     handleAction(activity) {
-        if (!this.hass || !this.config.show_actions) {
+        if (!this.normalizeBoolean(this.config.show_actions, true)) {
             return;
         }
 
@@ -62,7 +62,7 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getActionLink(activity) {
-        if (!this.config.show_actions) {
+        if (!this.normalizeBoolean(this.config.show_actions, true)) {
             return html``;
         }
 
@@ -71,7 +71,7 @@ class heitzfit4PlanningCard extends LitElement {
 
         if (activity.booked) {
             return html`
-                <button class="heitzfit4-action-button" @click=${() => this.handleAction(activity)}>
+                <button class="heitzfit4-action-button heitzfit4-action-button-booked" @click=${() => this.handleAction(activity)} title="Annuler la réservation">
                     <ha-icon icon="mdi:minus-circle"></ha-icon>
                 </button>
             `;
@@ -79,13 +79,17 @@ class heitzfit4PlanningCard extends LitElement {
 
         if (canBook) {
             return html`
-                <button class="heitzfit4-action-button" @click=${() => this.handleAction(activity)}>
+                <button class="heitzfit4-action-button heitzfit4-action-button-bookable" @click=${() => this.handleAction(activity)} title="Réserver">
                     <ha-icon icon="mdi:plus-circle"></ha-icon>
                 </button>
             `;
         }
 
-        return html``;
+        return html`
+            <button class="heitzfit4-action-button heitzfit4-action-button-full" disabled title="Plus de places">
+                <ha-icon icon="mdi:calendar-lock"></ha-icon>
+            </button>
+        `;
     }
 
     getPlanningRow(activity) {
@@ -101,7 +105,7 @@ class heitzfit4PlanningCard extends LitElement {
         let prefix = html``;
 
         let content = html`
-        <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''}">
+        <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''} ${activity.booked ? 'activity-booked' : ''}">
             <td>
                 ${displayStart}<br />
                 ${displayEnd}
@@ -120,7 +124,7 @@ class heitzfit4PlanningCard extends LitElement {
                 ${activity.status ? html`<span class="activity-status">${activity.status}</span>`:''}
                 ${activity.booked ? html`<span class="activity-status">Réservé</span>`:''}
             </td>
-            ${this.config.show_actions ? html`<td class="activity-actions">${this.getActionLink(activity)}</td>` : ''}
+            ${this.normalizeBoolean(this.config.show_actions, true) ? html`<td class="activity-actions">${this.getActionLink(activity)}</td>` : ''}
         </tr>
         `
         return html`${prefix}${content}`;
@@ -245,6 +249,10 @@ class heitzfit4PlanningCard extends LitElement {
 
         const activitys = planningAttr;
         const visibleDays = this.config.days || this.config.max_days || 7;
+        const onlyBooked = this.config.only_booked === 'booked'
+            ? true
+            : this.normalizeBoolean(this.config.only_booked, false);
+        const showActions = this.normalizeBoolean(this.config.show_actions, true);
 
         if (stateObj) {
             const currentWeekNumber = new Date().getWeekNumber();
@@ -259,7 +267,7 @@ class heitzfit4PlanningCard extends LitElement {
             for (let index = 0; index < activitys.length; index++) {
                 let activity = activitys[index];
 
-                if (this.config.only_booked && !activity.booked) {
+                if (onlyBooked && !activity.booked) {
                     continue;
                 }
 
@@ -320,11 +328,30 @@ class heitzfit4PlanningCard extends LitElement {
 
             return html`
                 <ha-card id="${this.config.entity}-card" class="${this.config.enable_slider ? 'heitzfit4-Planning-card-slider' : ''}">
-                    ${this.config.display_header ? this.getCardHeader() : ''}
+                    ${this.normalizeBoolean(this.config.display_header, true) ? this.getCardHeader() : ''}
                     ${itemTemplates}
                 </ha-card>`
             ;
         }
+    }
+
+    normalizeBoolean(value, fallback) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            if (['true', '1', 'on', 'yes'].includes(normalized)) {
+                return true;
+            }
+            if (['false', '0', 'off', 'no'].includes(normalized)) {
+                return false;
+            }
+            if (normalized === 'booked') {
+                return true;
+            }
+        }
+        return fallback;
     }
 
     setConfig(config) {
@@ -347,6 +374,11 @@ class heitzfit4PlanningCard extends LitElement {
             ...defaultConfig,
             ...config
         };
+
+        this.config.display_classroom = this.normalizeBoolean(this.config.display_classroom, true);
+        this.config.display_teacher = this.normalizeBoolean(this.config.display_teacher, false);
+        this.config.only_booked = this.normalizeBoolean(this.config.only_booked, false);
+        this.config.show_actions = this.normalizeBoolean(this.config.show_actions, true);
     }
 
     static get styles() {
@@ -403,6 +435,27 @@ class heitzfit4PlanningCard extends LitElement {
             background-color: rgb(75, 197, 253);
             padding: 4px;
             border-radius: 4px;
+        }
+        tr.activity-booked td {
+            border-left: 3px solid var(--paper-item-icon-color, #7ed321);
+        }
+        .heitzfit4-action-button {
+            background: transparent;
+            border: 0;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: var(--primary-text-color, #fff);
+        }
+        .heitzfit4-action-button-booked {
+            color: var(--success-color, #7ed321);
+        }
+        .heitzfit4-action-button-bookable {
+            color: var(--state-icon-active-color, #4caf50);
+        }
+        .heitzfit4-action-button-full {
+            color: var(--disabled-text-color, #777);
+            cursor: not-allowed;
         }
         // .activity-canceled span.activity-name {
         //     text-decoration: line-through;
