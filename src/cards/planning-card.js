@@ -92,25 +92,48 @@ class heitzfit4PlanningCard extends LitElement {
         `;
     }
 
-    getPlanningRow(activity) {
-        let currentDate = new Date();
-        let startAt = Date.parse(activity.start);
-        let endAt = Date.parse(activity.end);
+    normalizeActivity(activity) {
+        if (!activity || typeof activity !== 'object') {
+            return activity;
+        }
 
-        const displayStart = this.getFormattedTime(activity.start);
-        const displayEnd = this.getFormattedTime(activity.end);
-        const displayRoom = activity.room || activity.classroom || activity.location || '';
-        const displayName = activity.activity || activity.name || activity.title || activity.session || '';
+        const normalized = { ...activity };
+
+        normalized.activity = normalized.activity || normalized.name || normalized.title || normalized.session || normalized.lesson || '';
+        normalized.room = normalized.room || normalized.classroom || normalized.location || normalized.salle || '';
+        normalized.start = normalized.start || normalized.start_time || normalized.begin || normalized.begin_time || '';
+        normalized.end = normalized.end || normalized.end_time || normalized.finish || normalized.finish_time || '';
+
+        if (typeof normalized.booked === 'undefined' && typeof normalized.reserved === 'boolean') {
+            normalized.booked = normalized.reserved;
+        }
+        if (typeof normalized.booked === 'undefined' && typeof normalized.isBooked === 'boolean') {
+            normalized.booked = normalized.isBooked;
+        }
+
+        return normalized;
+    }
+
+    getPlanningRow(activity) {
+        const normalizedActivity = this.normalizeActivity(activity);
+        let currentDate = new Date();
+        let startAt = normalizedActivity.start ? Date.parse(normalizedActivity.start) : null;
+        let endAt = normalizedActivity.end ? Date.parse(normalizedActivity.end) : null;
+
+        const displayStart = this.getFormattedTime(normalizedActivity.start);
+        const displayEnd = this.getFormattedTime(normalizedActivity.end);
+        const displayRoom = normalizedActivity.room || '';
+        const displayName = normalizedActivity.activity || '';
 
         let prefix = html``;
 
         let content = html`
-        <tr class="${activity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt < currentDate ? 'activity-ended' : ''} ${activity.booked ? 'activity-booked' : ''}">
+        <tr class="${normalizedActivity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt && endAt < currentDate ? 'activity-ended' : ''} ${normalizedActivity.booked ? 'activity-booked' : ''}">
             <td>
                 ${displayStart}<br />
                 ${displayEnd}
             </td>
-            <td><span style="background-color:${activity.booked ? '#43B061' : (activity.background_color || '#7d7d7d')}"></span></td>
+            <td><span style="background-color:${normalizedActivity.booked ? '#43B061' : '#7d7d7d'}"></span></td>
             <td>
                 <span class="activity-name">${displayName}</span>
                 ${this.normalizeBoolean(this.config.display_classroom, true) ? html`<span class="activity-classroom">
@@ -119,10 +142,10 @@ class heitzfit4PlanningCard extends LitElement {
                 </span>` : '' }
             </td>
             <td>
-                ${activity.status ? html`<span class="activity-status">${activity.status}</span>`:''}
-                ${activity.booked ? html`<span class="activity-status">Réservé</span>`:''}
+                ${normalizedActivity.status ? html`<span class="activity-status">${normalizedActivity.status}</span>`:''}
+                ${normalizedActivity.booked ? html`<span class="activity-status">Réservé</span>`:''}
             </td>
-            ${this.normalizeBoolean(this.config.show_actions, true) ? html`<td class="activity-actions">${this.getActionLink(activity)}</td>` : ''}
+            ${this.normalizeBoolean(this.config.show_actions, true) ? html`<td class="activity-actions">${this.getActionLink(normalizedActivity)}</td>` : ''}
         </tr>
         `
         return html`${prefix}${content}`;
@@ -175,61 +198,54 @@ class heitzfit4PlanningCard extends LitElement {
             }
         }
 
+        let activitys = [];
+
         if (Array.isArray(payload)) {
-            return payload;
-        }
-
-        if (payload && typeof payload === 'object') {
+            activitys = payload;
+        } else if (payload && typeof payload === 'object') {
             if (Array.isArray(payload.Planning)) {
-                return payload.Planning;
-            }
-            if (Array.isArray(payload.planning)) {
-                return payload.planning;
-            }
-            if (Array.isArray(payload.activities)) {
-                return payload.activities;
-            }
-            if (Array.isArray(payload.data)) {
-                return payload.data;
-            }
-
-            if (payload.planning && typeof payload.planning === 'object') {
-                return this.flattenPlanningObject(payload.planning);
-            }
-            if (payload.Planning && typeof payload.Planning === 'object') {
-                return this.flattenPlanningObject(payload.Planning);
-            }
-
-            // Direct date-keyed object such as: { '2026-09-14': [ { activity: ... } ] }
-            const objectKeys = Object.keys(payload);
-            const hasDateArrayShape = objectKeys.some((key) => Array.isArray(payload[key]));
-            if (hasDateArrayShape) {
-                return this.flattenPlanningObject(payload);
-            }
-
-            const flat = [];
-            const recurse = (node) => {
-                if (Array.isArray(node)) {
-                    flat.push(...node);
-                    return;
+                activitys = payload.Planning;
+            } else if (Array.isArray(payload.planning)) {
+                activitys = payload.planning;
+            } else if (Array.isArray(payload.activities)) {
+                activitys = payload.activities;
+            } else if (Array.isArray(payload.data)) {
+                activitys = payload.data;
+            } else if (payload.planning && typeof payload.planning === 'object') {
+                activitys = this.flattenPlanningObject(payload.planning);
+            } else if (payload.Planning && typeof payload.Planning === 'object') {
+                activitys = this.flattenPlanningObject(payload.Planning);
+            } else {
+                const objectKeys = Object.keys(payload);
+                const hasDateArrayShape = objectKeys.some((key) => Array.isArray(payload[key]));
+                if (hasDateArrayShape) {
+                    activitys = this.flattenPlanningObject(payload);
+                } else {
+                    const flat = [];
+                    const recurse = (node) => {
+                        if (Array.isArray(node)) {
+                            flat.push(...node);
+                            return;
+                        }
+                        if (!node || typeof node !== 'object') {
+                            return;
+                        }
+                        for (const key of Object.keys(node)) {
+                            const value = node[key];
+                            if (Array.isArray(value)) {
+                                flat.push(...value);
+                            } else if (value && typeof value === 'object') {
+                                recurse(value);
+                            }
+                        }
+                    };
+                    recurse(payload);
+                    activitys = flat;
                 }
-                if (!node || typeof node !== 'object') {
-                    return;
-                }
-                for (const key of Object.keys(node)) {
-                    const value = node[key];
-                    if (Array.isArray(value)) {
-                        flat.push(...value);
-                    } else if (value && typeof value === 'object') {
-                        recurse(value);
-                    }
-                }
-            };
-            recurse(payload);
-            return flat;
+            }
         }
 
-        return [];
+        return activitys.map((activity) => this.normalizeActivity(activity));
     }
 
     getDayHeader(firstactivity, dayStartAt, dayEndAt, daysCount) {
