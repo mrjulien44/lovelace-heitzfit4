@@ -68,33 +68,22 @@ class Baseheitzfit4CardEditor extends LitElement {
     //     this.dispatchEvent(event);
     // }
     _valueChanged(ev) {
-        const _config = { ...this._config };
-        const target = ev.target;
-        const configKey = target.configValue || target.name;
+        const _config = Object.assign({}, this._config);
 
-        let typedValue;
-
-        // Priorité au checked
-        if ('checked' in target) {
-            typedValue = target.checked;
-        } else if (typeof target.value === 'string') {
-            typedValue = this._parseBooleanToken(target.value);
-
-            if (typedValue === undefined) {
-                typedValue = target.value === '' ? null : target.value;
-            }
+        if (typeof ev.target.checked !== 'undefined') {
+            _config[ev.target.configValue] = ev.target.checked;
         } else {
-            typedValue = target.value;
+            _config[ev.target.configValue] = ev.target.value == '' ? null : ev.target.value;
         }
-
-        _config[configKey] = typedValue;
+        
         this._config = _config;
 
-        this.dispatchEvent(new CustomEvent("config-changed", {
+        const event = new CustomEvent("config-changed", {
             detail: { config: _config },
             bubbles: true,
             composed: true,
-        }));
+        });
+        this.dispatchEvent(event);
     }
 
     buildSelectField(label, config_key, options, value, default_value) {
@@ -119,36 +108,19 @@ class Baseheitzfit4CardEditor extends LitElement {
 
     buildSwitchField(label, config_key, value, default_value) {
         if (typeof value !== 'boolean') {
-            value = this._parseBooleanToken(value) ?? default_value;
+            value = default_value;
         }
 
         return html`
-            <ha-selector-boolean>
-                <label for="display_header">${label}</label>
+            <ha-formfield class="switch-wrapper" .label="${label}">
                 <ha-switch
                     name="${config_key}"
                     .checked=${value}
                     .configValue="${config_key}"
-                    @change=${(ev) => {
-                        this._config = {
-                            ...this._config,
-                            [config_key]: ev.target.checked,
-                        };
-                    }}
+                    @change=${this._valueChanged}
                 ></ha-switch>
-            </ha-selector-boolean>
+            </ha-formfield>
         `;
-        // return html`
-        //     <ha-selector-boolean>
-        //         <label for="display_header">${label}</label>
-        //         <ha-switch
-        //             name="${config_key}"
-        //             .checked=${value}
-        //             .configValue="${config_key}"
-        //             @change=${this._valueChanged}
-        //         ></ha-switch>
-        //     </ha-selector-boolean>
-        // `;
     }
 
     buildNumberField(label, config_key, value, default_value, step) {

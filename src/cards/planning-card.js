@@ -11,6 +11,12 @@ Date.prototype.getWeekNumber = function () {
     return Math.ceil((((d - new Date(d.getFullYear(), 0, 1)) / 8.64e7) + 1) / 7);
 };
 
+function isSameDay(d1, d2) {
+    return d1.getFullYear() === d2.getFullYear() &&
+           d1.getMonth() === d2.getMonth() &&
+           d1.getDate() === d2.getDate();
+}
+
 class heitzfit4PlanningCard extends LitElement {
 
     // lunchBreakRendered = false;
@@ -23,7 +29,10 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getCardHeader() {
-        return html`<div class="heitzfit4-card-header"><img src = '/local/images/logo_globalfit.png' alt='GlobalFit Club' align='middle' height=50>Panning Global</div>`;
+        return html`
+        <div class="heitzfit4-card-header">
+          <img src = '/local/images/logo_globalfit.png' alt='GlobalFit Club' align='middle' height=50>Panning Global
+        </div>`;
     }
 
     // getBreakRow(label) {
@@ -41,7 +50,9 @@ class heitzfit4PlanningCard extends LitElement {
         if (!this.normalizeBoolean(this.config.show_actions, true)) {
             return;
         }
-
+        if (!this.normalizeBoolean(this.config.only_booked, true)) {
+            return;
+        }
         const data = {
             activity_id: String(activity.id)
         };
@@ -51,13 +62,7 @@ class heitzfit4PlanningCard extends LitElement {
                 this.hass.callService('heitzfit4', activity.booked ? 'delete_activity' : 'book_activity', data);
             }
         } catch (e) {
-            try {
-                if (this.hass.callService) {
-                    this.hass.callService('script', activity.booked ? 'heitzfit_annuler_action' : 'heitzfit_reserver_action', data);
-                }
-            } catch (e2) {
-                console.warn('Unable to call heitzfit action service', e2);
-            }
+            console.warn('Unable to call heitzfit action service', e);
         }
     }
 
@@ -535,12 +540,6 @@ class heitzfit4PlanningCard extends LitElement {
             color: var(--disabled-text-color, #777);
             cursor: not-allowed;
         }
-        // .activity-canceled span.activity-name {
-        //     text-decoration: line-through;
-        // }
-        // .activity-canceled span.activity-status {
-        //     background-color: rgb(250, 50, 75);
-        // }
         .activity-ended {
             opacity: 0.3;
         }

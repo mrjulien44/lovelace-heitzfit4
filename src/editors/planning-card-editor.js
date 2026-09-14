@@ -17,13 +17,6 @@ class heitzfit4PlanningCardEditor extends Baseheitzfit4CardEditor {
             ${this.buildSwitchField('Only booked', 'only_booked', this._config.only_booked, false)}
             ${this.buildSwitchField('Show actions', 'show_actions', this._config.show_actions, true)}
         `;
-//        return html`
-        //     ${this.buildEntityPickerField('Planning entity', 'entity', this._config.entity, 'Planning')}
-        //     ${this.buildNumberField('Days', 'days', this._config.days, 7, 1)}
-        //     ${this.buildSwitchField('Only booked', 'only_booked', this._config.only_booked, false)}
-        //     ${this.buildSwitchField('Show actions', 'show_actions', this._config.show_actions, true)}
-        //     ${this.buildNumberField('Max days', 'max_days', this._config.max_days, null, 1)}
-        // `;
     }
 }
 
