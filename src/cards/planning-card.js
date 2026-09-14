@@ -46,7 +46,7 @@ class heitzfit4PlanningCard extends LitElement {
     //     </tr>`;
     // }
 
-    handleAction(activity) {
+    async handleAction(activity) {
         if (!this.normalizeBoolean(this.config.show_actions, true)) {
             return;
         }
@@ -59,7 +59,21 @@ class heitzfit4PlanningCard extends LitElement {
 
         try {
             if (this.hass.callService) {
-                this.hass.callService('heitzfit4', activity.booked ? 'delete_activity' : 'book_activity', data);
+                await this.hass.callService('heitzfit4', activity.booked ? 'delete_activity' : 'book_activity', data);
+                await this.hass.callService('homeassistant', 'update_entity', { entity_id: 'sensor.heitzfit4_planning'});
+                  // 2. On force le composant à se re-rendre graphiquement
+                if (typeof this.requestUpdate === 'function') {
+                    this.requestUpdate(); 
+                }
+                  // Déclenche le message natif de l'interface Home Assistant
+                const event = new CustomEvent('hass-notification', {
+                    detail: {
+                    message: 'Le planning a été mis à jour avec succès !',
+                    dismissable: true
+                    },
+                    bubbles: true,
+                    composed: true
+                });
             }
         } catch (e) {
             console.warn('Unable to call heitzfit action service', e);
@@ -468,6 +482,17 @@ class heitzfit4PlanningCard extends LitElement {
         return css`
         .heitzfit4-card-header {
             text-align:center;
+        }
+        .heitzfit4-timetable-card-slider .heitzfit4-timetable-day-wrapper {
+            display: none;
+        }
+        .heitzfit4-timetable-card-slider .heitzfit4-timetable-day-wrapper.active {
+            display: block;
+        }
+        .heitzfit4-timetable-card-slider .heitzfit4-timetable-header-date {
+            display: inline-block;
+            text-align: center;
+            width: 120px;
         }
         div {
             padding: 12px;
