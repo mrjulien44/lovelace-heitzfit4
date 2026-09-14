@@ -1,6 +1,6 @@
 {
   "name": "lovelace-heitzfit4",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Lovelace cards for heitzfit4",
   "main": "dist/heitzfit4.js",
   "scripts": {

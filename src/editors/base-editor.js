@@ -36,7 +36,7 @@ class Baseheitzfit4CardEditor extends LitElement {
     _valueChanged(ev) {
         const _config = Object.assign({}, this._config);
         const target = ev.target;
-        const configKey = target.configValue || target.name;
+        const configKey = target.configValue || target.name || target.getAttribute && target.getAttribute('name');
 
         let typedValue;
         if (typeof target.checked === 'boolean') {
@@ -54,7 +54,7 @@ class Baseheitzfit4CardEditor extends LitElement {
             typedValue = target.value;
         }
 
-        if (typeof typedValue !== 'undefined') {
+        if (configKey && typeof typedValue !== 'undefined') {
             _config[configKey] = typedValue;
         }
 
@@ -100,7 +100,6 @@ class Baseheitzfit4CardEditor extends LitElement {
                     name="${config_key}"
                     .checked=${value}
                     .configValue="${config_key}"
-                    .value=${value ? 'on' : 'off'}
                     @change=${this._valueChanged}
                 ></ha-switch>
             </ha-selector-boolean>

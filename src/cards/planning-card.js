@@ -120,7 +120,7 @@ class heitzfit4PlanningCard extends LitElement {
         let startAt = normalizedActivity.start ? Date.parse(normalizedActivity.start) : null;
         let endAt = normalizedActivity.end ? Date.parse(normalizedActivity.end) : null;
 
-        const displayStart = this.getFormattedTime(normalizedActivity.start);
+        const displayStart = startAt; //this.getFormattedTime(normalizedActivity.start);
         const displayEnd = this.getFormattedTime(normalizedActivity.end);
         const displayRoom = normalizedActivity.room || '';
         const displayName = normalizedActivity.activity || '';
