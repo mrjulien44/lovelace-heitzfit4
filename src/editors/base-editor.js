@@ -17,17 +17,45 @@ class Baseheitzfit4CardEditor extends LitElement {
         this.loadEntityPicker();
     }
 
+    _parseBooleanToken(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            const normalized = value.trim().toLowerCase();
+            if (['true', '1', 'on', 'yes'].includes(normalized)) {
+                return true;
+            }
+            if (['false', '0', 'off', 'no'].includes(normalized)) {
+                return false;
+            }
+        }
+        return undefined;
+    }
+
     _valueChanged(ev) {
         const _config = Object.assign({}, this._config);
         const target = ev.target;
         const configKey = target.configValue || target.name;
 
+        let typedValue;
         if (typeof target.checked === 'boolean') {
-            _config[configKey] = target.checked;
+            typedValue = target.checked;
         } else if (typeof target.__checked === 'boolean') {
-            _config[configKey] = target.__checked;
-        } else if (typeof target.value === 'string' || typeof target.value === 'number') {
-            _config[configKey] = target.value == '' ? null : target.value;
+            typedValue = target.__checked;
+        } else if (typeof target.value === 'string') {
+            const switchedBool = this._parseBooleanToken(target.value);
+            if (typeof switchedBool === 'boolean') {
+                typedValue = switchedBool;
+            } else {
+                typedValue = target.value === '' ? null : target.value;
+            }
+        } else if (typeof target.value === 'number') {
+            typedValue = target.value;
+        }
+
+        if (typeof typedValue !== 'undefined') {
+            _config[configKey] = typedValue;
         }
 
         this._config = _config;
@@ -62,7 +90,7 @@ class Baseheitzfit4CardEditor extends LitElement {
 
     buildSwitchField(label, config_key, value, default_value) {
         if (typeof value !== 'boolean') {
-            value = default_value;
+            value = this._parseBooleanToken(value) ?? default_value;
         }
 
         return html`
@@ -72,6 +100,7 @@ class Baseheitzfit4CardEditor extends LitElement {
                     name="${config_key}"
                     .checked=${value}
                     .configValue="${config_key}"
+                    .value=${value ? 'on' : 'off'}
                     @change=${this._valueChanged}
                 ></ha-switch>
             </ha-selector-boolean>

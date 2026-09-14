@@ -152,14 +152,38 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getFormattedDate(activity) {
-        return (new Date(activity.start))
+        const source = activity && (activity.start || activity.begin || activity.start_time || activity.begin_time || '');
+        if (!source) {
+            return '';
+        }
+
+        const parsed = new Date(source);
+        if (Number.isNaN(parsed.getTime())) {
+            return '';
+        }
+
+        return parsed
             .toLocaleDateString('fr-FR', {weekday: 'long', day: '2-digit', month: '2-digit'})
             .replace(/^(.)/, (match) => match.toUpperCase())
         ;
     }
 
     getFormattedTime(time) {
-        return new Intl.DateTimeFormat("fr-FR", {hour:"numeric", minute:"numeric"}).format(new Date(time));
+        if (!time) {
+            return '';
+        }
+
+        const raw = String(time).trim();
+        if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(raw)) {
+            return raw;
+        }
+
+        const parsed = new Date(raw);
+        if (Number.isNaN(parsed.getTime())) {
+            return '';
+        }
+
+        return new Intl.DateTimeFormat("fr-FR", {hour:"numeric", minute:"numeric"}).format(parsed);
     }
 
     flattenPlanningObject(source) {
