@@ -33,39 +33,68 @@ class Baseheitzfit4CardEditor extends LitElement {
         return undefined;
     }
 
+    // _valueChanged(ev) {
+    //     const _config = Object.assign({}, this._config);
+    //     const target = ev.target;
+    //     const configKey = target.configValue || target.name || target.getAttribute && target.getAttribute('name');
+
+    //     let typedValue;
+    //     if (typeof target.checked === 'boolean') {
+    //         typedValue = target.checked;
+    //     } else if (typeof target.__checked === 'boolean') {
+    //         typedValue = target.__checked;
+    //     } else if (typeof target.value === 'string') {
+    //         const switchedBool = this._parseBooleanToken(target.value);
+    //         if (typeof switchedBool === 'boolean') {
+    //             typedValue = switchedBool;
+    //         } else {
+    //             typedValue = target.value === '' ? null : target.value;
+    //         }
+    //     } else if (typeof target.value === 'number') {
+    //         typedValue = target.value;
+    //     }
+
+    //     if (configKey && typeof typedValue !== 'undefined') {
+    //         _config[configKey] = typedValue;
+    //     }
+
+    //     this._config = _config;
+
+    //     const event = new CustomEvent("config-changed", {
+    //         detail: { config: _config },
+    //         bubbles: true,
+    //         composed: true,
+    //     });
+    //     this.dispatchEvent(event);
+    // }
     _valueChanged(ev) {
-        const _config = Object.assign({}, this._config);
+        const _config = { ...this._config };
         const target = ev.target;
-        const configKey = target.configValue || target.name || target.getAttribute && target.getAttribute('name');
+        const configKey = target.configValue || target.name;
 
         let typedValue;
-        if (typeof target.checked === 'boolean') {
+
+        // Priorité au checked
+        if ('checked' in target) {
             typedValue = target.checked;
-        } else if (typeof target.__checked === 'boolean') {
-            typedValue = target.__checked;
         } else if (typeof target.value === 'string') {
-            const switchedBool = this._parseBooleanToken(target.value);
-            if (typeof switchedBool === 'boolean') {
-                typedValue = switchedBool;
-            } else {
+            typedValue = this._parseBooleanToken(target.value);
+
+            if (typedValue === undefined) {
                 typedValue = target.value === '' ? null : target.value;
             }
-        } else if (typeof target.value === 'number') {
+        } else {
             typedValue = target.value;
         }
 
-        if (configKey && typeof typedValue !== 'undefined') {
-            _config[configKey] = typedValue;
-        }
-
+        _config[configKey] = typedValue;
         this._config = _config;
 
-        const event = new CustomEvent("config-changed", {
+        this.dispatchEvent(new CustomEvent("config-changed", {
             detail: { config: _config },
             bubbles: true,
             composed: true,
-        });
-        this.dispatchEvent(event);
+        }));
     }
 
     buildSelectField(label, config_key, options, value, default_value) {
@@ -100,10 +129,26 @@ class Baseheitzfit4CardEditor extends LitElement {
                     name="${config_key}"
                     .checked=${value}
                     .configValue="${config_key}"
-                    @change=${this._valueChanged}
+                    @change=${(ev) => {
+                        this._config = {
+                            ...this._config,
+                            [config_key]: ev.target.checked,
+                        };
+                    }}
                 ></ha-switch>
             </ha-selector-boolean>
         `;
+        // return html`
+        //     <ha-selector-boolean>
+        //         <label for="display_header">${label}</label>
+        //         <ha-switch
+        //             name="${config_key}"
+        //             .checked=${value}
+        //             .configValue="${config_key}"
+        //             @change=${this._valueChanged}
+        //         ></ha-switch>
+        //     </ha-selector-boolean>
+        // `;
     }
 
     buildNumberField(label, config_key, value, default_value, step) {

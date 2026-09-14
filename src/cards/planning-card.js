@@ -23,19 +23,19 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getCardHeader() {
-        return html`<div class="heitzfit4-card-header">Panning Global</div>`;
+        return html`<div class="heitzfit4-card-header"><img src = '/local/images/logo_globalfit.png' alt='GlobalFit Club' align='middle' height=50>Panning Global</div>`;
     }
 
-    getBreakRow(label) {
-        return html`
-        <tr class="lunch-break">
-            <td></td>
-            <td><span></span></td>
-            <td colspan="2">
-                <span class="activity-name">${label}</span>
-            </td>
-        </tr>`;
-    }
+    // getBreakRow(label) {
+    //     return html`
+    //     <tr class="lunch-break">
+    //         <td></td>
+    //         <td><span></span></td>
+    //         <td colspan="2">
+    //             <span class="activity-name">${label}</span>
+    //         </td>
+    //     </tr>`;
+    // }
 
     handleAction(activity) {
         if (!this.normalizeBoolean(this.config.show_actions, true)) {
@@ -86,7 +86,7 @@ class heitzfit4PlanningCard extends LitElement {
         }
 
         return html`
-            <button class="heitzfit4-action-button heitzfit4-action-button-full" disabled title="Plus de places">
+            <button class="heitzfit4-action-button heitzfit4-action-button-full" disabled title="Complet">
                 <ha-icon icon="mdi:calendar-lock"></ha-icon>
             </button>
         `;
@@ -120,9 +120,14 @@ class heitzfit4PlanningCard extends LitElement {
         let startAt = normalizedActivity.start ? Date.parse(normalizedActivity.start) : null;
         let endAt = normalizedActivity.end ? Date.parse(normalizedActivity.end) : null;
 
-        const displayStart = startAt; //this.getFormattedTime(normalizedActivity.start);
-        const displayEnd = this.getFormattedTime(normalizedActivity.end);
+        //const displayStart = this.getFormattedTime(normalizedActivity.start);
+        const displayStart = this.getFormattedTime(startAt);
+        console.log(displayStart);
+        //const displayEnd = this.getFormattedTime(normalizedActivity.end);
+        const displayEnd = this.getFormattedTime(endAt);
+        console.log(displayEnd);
         const displayRoom = normalizedActivity.room || '';
+        console.log(displayRoom);
         const displayName = normalizedActivity.activity || '';
 
         let prefix = html``;
@@ -136,23 +141,42 @@ class heitzfit4PlanningCard extends LitElement {
             <td><span style="background-color:${normalizedActivity.booked ? '#43B061' : '#7d7d7d'}"></span></td>
             <td>
                 <span class="activity-name">${displayName}</span>
-                ${this.normalizeBoolean(this.config.display_classroom, true) ? html`<span class="activity-classroom">
-                    ${displayRoom ? 'Salle '+displayRoom : ''}
-                    ${displayRoom ? ', ' : ''}
-                </span>` : '' }
+                <span class="activity-classroom">${displayRoom}</span>
             </td>
             <td>
-                ${normalizedActivity.status ? html`<span class="activity-status">${normalizedActivity.status}</span>`:''}
                 ${normalizedActivity.booked ? html`<span class="activity-status">Réservé</span>`:''}
             </td>
             ${this.normalizeBoolean(this.config.show_actions, true) ? html`<td class="activity-actions">${this.getActionLink(normalizedActivity)}</td>` : ''}
         </tr>
         `
+        // let content = html`
+        // <tr class="${normalizedActivity.canceled ? 'activity-canceled':''} ${this.config.dim_ended_activitys && endAt && endAt < currentDate ? 'activity-ended' : ''} ${normalizedActivity.booked ? 'activity-booked' : ''}">
+        //     <td>
+        //         ${displayStart}<br />
+        //         ${displayEnd}
+        //     </td>
+        //     <td><span style="background-color:${normalizedActivity.booked ? '#43B061' : '#7d7d7d'}"></span></td>
+        //     <td>
+        //         <span class="activity-name">${displayName}</span>
+        //         <span class="activity-classroom">${displayRoom}</span>
+        //         // ${this.normalizeBoolean(this.config.display_classroom, true) ? html`<span class="activity-classroom">
+        //         //     ${displayRoom ? 'Salle '+displayRoom : ''}
+        //         //     ${displayRoom ? ', ' : ''}
+        //         // </span>` : '' }
+        //     </td>
+        //     <td>
+        //         ${normalizedActivity.status ? html`<span class="activity-status">${normalizedActivity.status}</span>`:''}
+        //         ${normalizedActivity.booked ? html`<span class="activity-status">Réservé</span>`:''}
+        //     </td>
+        //     ${this.normalizeBoolean(this.config.show_actions, true) ? html`<td class="activity-actions">${this.getActionLink(normalizedActivity)}</td>` : ''}
+        // </tr>
+        // `
         return html`${prefix}${content}`;
     }
 
     getFormattedDate(activity) {
-        const source = activity && (activity.start || activity.begin || activity.start_time || activity.begin_time || '');
+        //const source = activity && (activity.start || activity.begin || activity.start_time || activity.begin_time || '');
+        const source = activity;
         if (!source) {
             return '';
         }
@@ -273,10 +297,10 @@ class heitzfit4PlanningCard extends LitElement {
     }
 
     getDayHeader(firstactivity, dayStartAt, dayEndAt, daysCount) {
-        return html`<div class="pronote-timetable-day-wrapper ${daysCount === 0 ? 'active' : ''}">
-            <div class="pronote-timetable-header">
-                <span class="pronote-timetable-header-date">${this.getFormattedDate(firstactivity)}</span>
-                ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="pronote-timetable-header-hours">
+        return html`<div class="heitzfit4-timetable-day-wrapper ${daysCount === 0 ? 'active' : ''}">
+            <div class="heitzfit4-timetable-header">
+                <span class="heitzfit4-timetable-header-date">${this.getFormattedDate(firstactivity)}</span>
+                ${this.config.display_day_hours && dayStartAt && dayEndAt ? html`<span class="heitzfit4-timetable-header-hours">
                     ${this.getFormattedTime(dayStartAt)} - ${this.getFormattedTime(dayEndAt)}
                 </span>` : '' }
             </div>
@@ -305,12 +329,15 @@ class heitzfit4PlanningCard extends LitElement {
             return html``;
         }
 
-        const activitys = planningAttr;
-        const visibleDays = this.config.days || this.config.max_days || 7;
+        const rawActivitys = planningAttr;
+        const visibleDays = this.config.days || 7; //this.config.max_days || 7;
         const onlyBookedToken = typeof this.config.only_booked === 'string'
             && this.config.only_booked.trim().toLowerCase() === 'booked';
         const onlyBooked = onlyBookedToken || this.normalizeBoolean(this.config.only_booked, false);
         const showActions = this.normalizeBoolean(this.config.show_actions, true);
+        const activitys = onlyBooked
+            ? rawActivitys.filter((activity) => activity.booked)
+            : rawActivitys;
 
         if (stateObj) {
             const currentWeekNumber = new Date().getWeekNumber();
@@ -324,10 +351,6 @@ class heitzfit4PlanningCard extends LitElement {
 
             for (let index = 0; index < activitys.length; index++) {
                 let activity = activitys[index];
-
-                if (onlyBooked && !activity.booked) {
-                    continue;
-                }
 
                 let currentFormattedDate = this.getFormattedDate(activity);
 
@@ -361,7 +384,7 @@ class heitzfit4PlanningCard extends LitElement {
                     `);
                     dayTemplates = [];
 
-                    this.lunchBreakRendered = false;
+                    //this.lunchBreakRendered = false;
                     dayStartAt = null;
                     dayEndAt = null;
 
@@ -373,10 +396,10 @@ class heitzfit4PlanningCard extends LitElement {
                     const currentEndAt = new Date(activity.end);
                     const nextactivity = activitys[index+1];
                     const nextactivityStartAt = new Date(nextactivity.start);
-                    if (activity.is_morning === nextactivity.is_morning && Math.floor((nextactivityStartAt-currentEndAt) / 1000 / 60) > 30) {
-                        const now = new Date();
-                        dayTemplates.push(this.getBreakRow('Pas de cours', this.config.dim_ended_activitys && nextactivityStartAt < now));
-                    }
+                    // if (activity.is_morning === nextactivity.is_morning && Math.floor((nextactivityStartAt-currentEndAt) / 1000 / 60) > 30) {
+                    //     const now = new Date();
+                    //     dayTemplates.push(this.getBreakRow('Pas de cours', this.config.dim_ended_activitys && nextactivityStartAt < now));
+                    // }
                 }
             }
 
@@ -415,12 +438,12 @@ class heitzfit4PlanningCard extends LitElement {
         }
 
         const defaultConfig = {
-            entity: null,
-            display_header: true,
-            display_classroom: true,
-            display_teacher: false,
+            // entity: null,
+            // display_header: true,
+            // display_classroom: true,
+            // display_teacher: false,
             days: 7,
-            max_days: null,
+            //max_days: null,
             only_booked: false,
             show_actions: true,
         }
@@ -430,8 +453,8 @@ class heitzfit4PlanningCard extends LitElement {
             ...config
         };
 
-        this.config.display_classroom = this.normalizeBoolean(this.config.display_classroom, true);
-        this.config.display_teacher = this.normalizeBoolean(this.config.display_teacher, false);
+        // this.config.display_classroom = this.normalizeBoolean(this.config.display_classroom, true);
+        // this.config.display_teacher = this.normalizeBoolean(this.config.display_teacher, false);
         this.config.only_booked = this.normalizeBoolean(this.config.only_booked, false);
         this.config.show_actions = this.normalizeBoolean(this.config.show_actions, true);
     }
@@ -530,8 +553,8 @@ class heitzfit4PlanningCard extends LitElement {
     static getStubConfig() {
         return {
             display_header: true,
-            max_days: null,
-            current_week_only: false,
+            //max_days: null,
+            //current_week_only: false,
         }
     }
 
