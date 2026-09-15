@@ -1,6 +1,6 @@
 {
-    "name": "Heitzfit4 Cards",
-    "filename": "heitzfit4.js",
-    "content_in_root": true,
-    "render_readme": true
+  "name": "HeitzFit4 Planning Card",
+  "content_in_root": false,
+  "filename": "heitzfit4-planning-card.js",
+  "render_readme": true
 }

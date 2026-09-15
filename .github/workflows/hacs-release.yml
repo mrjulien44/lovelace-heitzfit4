@@ -1,0 +1,170 @@
+name: HACS Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+
+  release:
+
+    runs-on: ubuntu-latest
+
+    env:
+      EXPECTED_PACKAGE: lovelace-heitzfit4
+      EXPECTED_CARD_FILE: heitzfit4-planning-card.js
+
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      ############################################################
+      # VALIDATION FICHIERS
+      ############################################################
+
+      - name: Validate required files
+        run: |
+          test -f package.json
+          test -f hacs.json
+          test -f README.md
+          test -f LICENSE
+          test -f vite.config.ts
+          test -f tsconfig.json
+
+      ############################################################
+      # VALIDATION PACKAGE.JSON
+      ############################################################
+
+      - name: Validate package.json
+        run: |
+
+          PACKAGE_NAME=$(node -p "require('./package.json').name")
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          echo "Package name: $PACKAGE_NAME"
+          echo "Package version: $PACKAGE_VERSION"
+
+          if [ "$PACKAGE_NAME" != "$EXPECTED_PACKAGE" ]; then
+            echo "::error::Invalid package name"
+            exit 1
+          fi
+
+          if [ -z "$PACKAGE_VERSION" ]; then
+            echo "::error::Version missing"
+            exit 1
+          fi
+
+      ############################################################
+      # VALIDATION TAG ↔ VERSION
+      ############################################################
+
+      - name: Validate tag version
+        run: |
+
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+
+          echo "Tag version     = $TAG_VERSION"
+          echo "Package version = $PACKAGE_VERSION"
+
+          if [ "$TAG_VERSION" != "$PACKAGE_VERSION" ]; then
+            echo "::error::Tag and package.json version mismatch"
+            exit 1
+          fi
+
+      ############################################################
+      # VALIDATION HACS.JSON
+      ############################################################
+
+      - name: Validate hacs.json
+        run: |
+
+          HACS_FILENAME=$(node -p "require('./hacs.json').filename")
+
+          echo "HACS filename: $HACS_FILENAME"
+
+          if [ "$HACS_FILENAME" != "$EXPECTED_CARD_FILE" ]; then
+            echo "::error::Invalid HACS filename"
+            exit 1
+          fi
+
+      ############################################################
+      # DEPENDENCIES
+      ############################################################
+
+      - name: Install dependencies
+        run: npm ci
+
+      ############################################################
+      # TYPESCRIPT CHECK
+      ############################################################
+
+      - name: TypeScript validation
+        run: npx tsc --noEmit
+
+      ############################################################
+      # BUILD
+      ############################################################
+
+      - name: Build project
+        run: npm run build
+
+      ############################################################
+      # VALIDATION BUILD
+      ############################################################
+
+      - name: Verify build output
+        run: |
+
+          test -f dist/${EXPECTED_CARD_FILE}
+
+          SIZE=$(stat -c%s dist/${EXPECTED_CARD_FILE})
+
+          echo "Bundle size: $SIZE bytes"
+
+          if [ "$SIZE" -lt 1000 ]; then
+            echo "::error::Generated bundle looks invalid"
+            exit 1
+          fi
+
+      ############################################################
+      # UPLOAD ARTIFACT
+      ############################################################
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lovelace-heitzfit4
+          path: |
+            dist/heitzfit4-planning-card.js
+
+      ############################################################
+      # GITHUB RELEASE
+      ############################################################
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+
+          files: |
+            dist/heitzfit4-planning-card.js
+
+          draft: false
+          prerelease: false
