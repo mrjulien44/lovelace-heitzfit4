@@ -154,7 +154,6 @@ const t=Object.getPrototypeOf(customElements.get("ha-panel-lovelace")),e=t.proto
                     .checked=${i}
                     .configValue="${e}"
                     @change=${this._valueChanged}
-                    console.log(this._valueChanged)
                 ></ha-switch>
             </ha-formfield>
         `}buildNumberField(t,e,i,n,o){return a`
