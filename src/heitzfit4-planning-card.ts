@@ -346,56 +346,162 @@ export class Heitzfit4PlanningCard extends LitElement {
     );
   }
 
-  private async runAction(activity: Activity): Promise<void> {
-    if (!this.hass || !this.config || this.pendingActivityId) return;
+  private async runAction(
+  activity: Activity
+): Promise<void> {
 
-    const activityId = String(activity.id);
-    const wasBooked = activity.booked;
-    const entityId = this.config.entity;
-    const previousRevision = this.entityRevision(this.hass.states[entityId]);
+  if (
+    !this.hass ||
+    !this.config ||
+    this.pendingActivityId
+  ) {
+    return;
+  }
 
-    this.pendingActivityId = activityId;
-    this.refreshing = true;
-    this.errorMessage = undefined;
-    this.successMessage = undefined;
+  const activityId = String(activity.id);
 
-    try {
-      await this.hass.callService(
-        "heitzfit4",
-        wasBooked ? "delete_activity" : "book_activity",
-        { activity_id: activityId }
+  const wasBooked = activity.booked;
+
+  const entityId = this.config.entity;
+
+  const previousRevision =
+    this.entityRevision(
+      this.hass.states[entityId]
+    );
+
+  this.pendingActivityId = activityId;
+
+  this.refreshing = true;
+
+  this.errorMessage = undefined;
+  this.successMessage = undefined;
+
+  try {
+
+    if (wasBooked) {
+
+      if (
+        activity.id_booking === undefined ||
+        activity.id_booking === null ||
+        activity.id_booking === ""
+      ) {
+
+        throw new Error(
+          "Missing id_booking for cancellation"
+        );
+
+      }
+
+      console.log(
+        "Cancelling booking",
+        activity.id_booking
       );
 
-      await this.hass.callService("homeassistant", "update_entity", {
-        entity_id: entityId,
-      });
+      await this.hass.callService(
+        "heitzfit4",
+        "delete_activity",
+        {
+          booking_id: String(
+            activity.id_booking
+          )
+        }
+      );
 
-      const refreshed = await this.waitForEntityRefresh(
+    } else {
+
+      console.log(
+        "Booking activity",
+        activity.id
+      );
+
+      await this.hass.callService(
+        "heitzfit4",
+        "book_activity",
+        {
+          activity_id: activityId
+        }
+      );
+
+    }
+
+    await this.hass.callService(
+      "homeassistant",
+      "update_entity",
+      {
+        entity_id: entityId
+      }
+    );
+
+    const refreshed =
+      await this.waitForEntityRefresh(
         entityId,
         previousRevision
       );
 
-      const successMessage = wasBooked
+    const successMessage =
+      wasBooked
         ? this.labels.cancelSuccess
         : this.labels.bookedSuccess;
 
-      if (refreshed) {
-        this.successMessage = successMessage;
-        this.showToast(successMessage);
-        this.requestUpdate();
-      } else {
-        this.errorMessage = this.labels.refreshTimeout;
-        this.showToast(this.labels.refreshTimeout);
-      }
-    } catch (error) {
-      console.error("HeitzFit4 Planning Card action failed:", error);
-      this.errorMessage = this.labels.actionError;
-      this.showToast(this.labels.actionError);
-    } finally {
-      this.pendingActivityId = undefined;
-      this.refreshing = false;
+    if (refreshed) {
+
+      this.successMessage =
+        successMessage;
+
+      this.showToast(
+        successMessage
+      );
+
+      this.requestUpdate();
+
+    } else {
+
+      this.errorMessage =
+        this.labels.refreshTimeout;
+
+      this.showToast(
+        this.labels.refreshTimeout
+      );
+
     }
+
+  } catch (error) {
+
+    console.error(
+      "HeitzFit4 Planning Card action failed:",
+      error
+    );
+
+    if (
+      error instanceof Error &&
+      error.message.includes(
+        "Missing id_booking"
+      )
+    ) {
+
+      this.errorMessage =
+        "id_booking absent pour cette réservation";
+
+    } else {
+
+      this.errorMessage =
+        this.labels.actionError;
+
+    }
+
+    this.showToast(
+      this.errorMessage
+    );
+
+  } finally {
+
+    this.pendingActivityId =
+      undefined;
+
+    this.refreshing = false;
+
   }
+}
 
   private renderAction(activity: Activity): TemplateResult | typeof nothing {
     if (!this.config?.show_actions) return nothing;
@@ -418,7 +524,7 @@ export class Heitzfit4PlanningCard extends LitElement {
         ${pending
           ? html`<span class="spinner" aria-hidden="true"></span>`
           : activity.booked
-            ? "-"
+            ? "x"
             : "+"}
       </button>
     `;
@@ -465,35 +571,29 @@ export class Heitzfit4PlanningCard extends LitElement {
 
     return html`
     <ha-card>
-${this.config.logo || this.config.title
-  ? html`
-      <header class="card-header">
-
-        ${this.config.logo
-          ? html`
-              ${this.config.logo}
-            `
-          : nothing}
-
-        <div class="header-title">
-
-          <div class="planning-title">
-            PLANNING
-          </div>
-
-          ${this.config.title
-            ? html`
-                <div class="planning-subtitle">
-                  ${this.config.title}
-                </div>
-              `
-            : nothing}
-
-        </div>
-
-      </header>
-    `
-  : nothing}
+    ${this.config.logo || this.config.title
+      ? html`
+          <header class="card-header">
+            ${this.config.logo
+              ? html`
+                  <img
+                    class="logo"
+                  thing}
+            <div class="header-title">
+              <div class="planning-title">
+                PLANNING
+              </div>
+              ${this.config.title
+                ? html`
+                    <div class="planning-subtitle">
+                      ${this.config.title}
+                    </div>
+                  `
+                : nothing}
+            </div>
+          </header>
+        `
+      : nothing}
       ${this.refreshing
         ? html`
             <ha-linear-progress
@@ -615,8 +715,14 @@ ${this.config.logo || this.config.title
     }
 
     .separator {
+      width: 3px;
+      min-height: 36px;
+      align-self: stretch;
       border-radius: 999px;
-      background: var(--divider-color, #9e9e9e);
+      background: var(
+        --divider-color,
+        #9e9e9e
+      );
     }
 
     .activity.is-booked .separator {
