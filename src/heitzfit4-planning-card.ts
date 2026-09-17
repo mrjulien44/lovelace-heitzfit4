@@ -417,7 +417,7 @@ export class Heitzfit4PlanningCard extends LitElement {
         ${pending
           ? html`<span class="spinner" aria-hidden="true"></span>`
           : activity.booked
-            ? this.labels.cancel
+            ? "-"
             : "+"}
       </button>
     `;
@@ -466,15 +466,31 @@ export class Heitzfit4PlanningCard extends LitElement {
       <ha-card>
         ${this.config.logo || this.config.title
           ? html`
-              <header class="card-header">
-                ${this.config.logo
-                  ? html`<img
-                      src=${this.config.logo}
-                      alt=${this.config.title || "HeitzFit4"}
-                    />`
+            <header class="card-header">
+              ${this.config.logo
+                ? html`
+                    <img
+                      src=${this.config. nothing}
+
+              <div class="header-title">
+
+                <div class="planning-title">
+
+                  PLANNING
+
+                </div>
+
+                ${this.config.title
+                  ? html`
+                      <div class="planning-subtitle">
+                        ${this.config.title}
+                      </div>
+                    `
                   : nothing}
-                ${this.config.title ? html`<h2>${this.config.title}</h2>` : nothing}
-              </header>
+
+              </div>
+
+            </header>
             `
           : nothing}
 
@@ -514,7 +530,7 @@ export class Heitzfit4PlanningCard extends LitElement {
           ${days.map(
             ([dateKey, activities]) => html`
               <section>
-                <h3>${this.formatDay(dateKey)}</h3>
+                <h3>📅${this.formatDay(dateKey)}</h3>
                 ${activities.map((activity) => this.renderActivity(activity))}
               </section>
             `
@@ -558,6 +574,27 @@ export class Heitzfit4PlanningCard extends LitElement {
       font-size: 20px;
     }
 
+    .header-title {
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .planning-title {
+
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+
+    .planning-subtitle {
+
+      font-size: 12px;
+      color: var(--secondary-text-color);
+    }
+
     .content {
       padding: 12px 16px 16px;
     }
@@ -574,21 +611,33 @@ export class Heitzfit4PlanningCard extends LitElement {
     }
 
     .activity {
+
       display: grid;
-      grid-template-columns: 58px 3px minmax(0, 1fr);
-      gap: 12px;
-      min-height: 56px;
-      padding: 5px 0;
+
+      grid-template-columns:
+        56px
+        3px
+        minmax(0, 1fr);
+
+      gap: 10px;
+
+      min-height: 44px;
+
+      padding: 3px 0;
+
+      align-items: start;
     }
 
     .times {
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      justify-content: flex-start;
+      gap: 2px;
+      padding-top: 1px;
       text-align: right;
       font-variant-numeric: tabular-nums;
-      font-size: 14px;
-      line-height: 1.2;
+      font-size: 13px;
+      line-height: 1;
     }
 
     .separator {
@@ -608,16 +657,18 @@ export class Heitzfit4PlanningCard extends LitElement {
     }
 
     .activity-line {
-      min-height: 28px;
+      min-height: 20px;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 10px;
     }
 
     .activity-line strong {
       overflow-wrap: anywhere;
-      font-size: 15px;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.1;
       letter-spacing: 0.02em;
     }
 
@@ -642,15 +693,17 @@ export class Heitzfit4PlanningCard extends LitElement {
     }
 
     .action {
-      flex: 0 0 auto;
-      min-width: 30px;
-      min-height: 30px;
-      padding: 4px 9px;
-      border: 0;
-      border-radius: 15px;
-      cursor: pointer;
-      font: inherit;
-      font-weight: 800;
+      min-width: 22px;
+      width: 22px;
+      min-height: 22px;
+      height: 22x;
+      padding: 0;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      line-height: 1;
     }
 
     .action.book {
@@ -661,14 +714,18 @@ export class Heitzfit4PlanningCard extends LitElement {
     }
 
     .action.cancel {
-      background: color-mix(
-        in srgb,
-        var(--error-color, #db4437) 14%,
-        transparent
-      );
-      color: var(--error-color, #db4437);
-      font-size: 12px;
+      background:
+        color-mix(
+          in srgb,
+          var(--error-color, #db4437) 14%,
+          transparent
+        );
+      color:
+        var(--error-color, #db4437);
+      font-size: 18px;
+      font-weight: 900;
     }
+
 
     .action:disabled {
       opacity: 0.55;
@@ -722,6 +779,7 @@ export class Heitzfit4PlanningCard extends LitElement {
       .times,
       .meta {
         font-size: 12px;
+        line-height: 1.1;
       }
     }
   `;
