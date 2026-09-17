@@ -27,6 +27,7 @@ interface HomeAssistant {
 
 interface Activity {
   id: string | number;
+  id_booking?: string | number;
   activity: string;
   start: string;
   end: string;
@@ -463,81 +464,75 @@ export class Heitzfit4PlanningCard extends LitElement {
     const planningIsEmpty = Object.keys(planning).length === 0;
 
     return html`
-      <ha-card>
-        ${this.config.logo || this.config.title
+    <ha-card>
+${this.config.logo || this.config.title
+  ? html`
+      <header class="card-header">
+
+        ${this.config.logo
           ? html`
-            <header class="card-header">
-              ${this.config.logo
-                ? html`
-                    <img
-                      src=${this.config. nothing}
+              ${this.config.logo}
+            `
+          : nothing}
 
-              <div class="header-title">
+        <div class="header-title">
 
-                <div class="planning-title">
+          <div class="planning-title">
+            PLANNING
+          </div>
 
-                  PLANNING
-
+          ${this.config.title
+            ? html`
+                <div class="planning-subtitle">
+                  ${this.config.title}
                 </div>
-
-                ${this.config.title
-                  ? html`
-                      <div class="planning-subtitle">
-                        ${this.config.title}
-                      </div>
-                    `
-                  : nothing}
-
-              </div>
-
-            </header>
-            `
-          : nothing}
-
-        ${this.refreshing
-          ? html`<ha-linear-progress indeterminate></ha-linear-progress>`
-          : nothing}
-
-        <div class="content">
-          ${!entity
-            ? html`<ha-alert alert-type="error">
-                ${this.labels.unavailable}: ${this.config.entity}
-              </ha-alert>`
+              `
             : nothing}
 
-          ${entity && planningIsEmpty
-            ? html`<ha-alert alert-type="warning">
-                ${this.labels.invalidPlanning}
-              </ha-alert>`
-            : nothing}
-
-          ${this.errorMessage
-            ? html`<ha-alert alert-type="error">${this.errorMessage}</ha-alert>`
-            : nothing}
-
-          ${this.successMessage
-            ? html`<ha-alert alert-type="success">${this.successMessage}</ha-alert>`
-            : nothing}
-
-          ${this.refreshing
-            ? html`<div class="refreshing-text">${this.labels.refreshing}</div>`
-            : nothing}
-
-          ${entity && !planningIsEmpty && days.length === 0
-            ? html`<p class="empty">${this.labels.empty}</p>`
-            : nothing}
-
-          ${days.map(
-            ([dateKey, activities]) => html`
-              <section>
-                <h3>📅${this.formatDay(dateKey)}</h3>
-                ${activities.map((activity) => this.renderActivity(activity))}
-              </section>
-            `
-          )}
         </div>
-      </ha-card>
-    `;
+
+      </header>
+    `
+  : nothing}
+      ${this.refreshing
+        ? html`
+            <ha-linear-progress
+              indeterminate
+            ></ha-linear-progress>
+          `
+        : nothing}
+      <div class="content">
+
+        ${!entity
+          ? html`
+              <ha-alert alert-type="error">
+                ${this.labels.unavailable}
+                :
+                ${this.config.entity}
+              </ha-alert>
+            `
+          : nothing}
+
+        ${days.map(
+          ([dateKey, activities]) => html`
+            <section>
+
+              <h3>
+                📅 ${this.formatDay(dateKey)}
+              </h3>
+
+              ${activities.map(
+                (activity) =>
+                  this.renderActivity(
+                    activity
+                  )
+              )}
+            </section>
+          `
+        )}
+      </div>
+    </ha-card>
+  `;
   }
 
   static styles = css`
@@ -572,27 +567,6 @@ export class Heitzfit4PlanningCard extends LitElement {
     .card-header h2 {
       margin: 0;
       font-size: 20px;
-    }
-
-    .header-title {
-
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .planning-title {
-
-      font-size: 26px;
-      font-weight: 900;
-      line-height: 1;
-      letter-spacing: 1px;
-    }
-
-    .planning-subtitle {
-
-      font-size: 12px;
-      color: var(--secondary-text-color);
     }
 
     .content {
@@ -677,8 +651,11 @@ export class Heitzfit4PlanningCard extends LitElement {
       align-items: center;
       flex-wrap: wrap;
       gap: 5px;
+
       color: var(--secondary-text-color);
-      font-size: 13px;
+
+      font-size: 12px;
+      line-height: 1.1;
     }
 
     .capacity.full,
@@ -696,7 +673,7 @@ export class Heitzfit4PlanningCard extends LitElement {
       min-width: 22px;
       width: 22px;
       min-height: 22px;
-      height: 22x;
+      height: 22px;
       padding: 0;
       border-radius: 50%;
       display: flex;
@@ -726,7 +703,6 @@ export class Heitzfit4PlanningCard extends LitElement {
       font-weight: 900;
     }
 
-
     .action:disabled {
       opacity: 0.55;
       cursor: wait;
@@ -735,6 +711,31 @@ export class Heitzfit4PlanningCard extends LitElement {
     .status {
       align-self: center;
       font-size: 12px;
+    }
+
+    .logo {
+      max-width: 120px;
+      max-height: 50px;
+      object-fit: contain;
+    }
+
+    .header-title {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      margin-left: 12px;
+    }
+
+    .planning-title {
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      letter-spacing: 1px;
+    }
+
+    .planning-subtitle {
+      font-size: 12px;
+      color: var(--secondary-text-color);
     }
 
     .spinner {
@@ -776,8 +777,7 @@ export class Heitzfit4PlanningCard extends LitElement {
         gap: 9px;
       }
 
-      .times,
-      .meta {
+      .times {
         font-size: 12px;
         line-height: 1.1;
       }
