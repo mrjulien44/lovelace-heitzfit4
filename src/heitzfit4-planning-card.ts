@@ -573,27 +573,14 @@ export class Heitzfit4PlanningCard extends LitElement {
     <ha-card>
     ${this.config.logo || this.config.title
       ? html`
-          <header class="card-header">
-            ${this.config.logo
-              ? html`
-                  <img
-                    class="logo"
-                  thing}
-            <div class="header-title">
-              <div class="planning-title">
-                PLANNING
-              </div>
-              ${this.config.title
-                ? html`
-                    <div class="planning-subtitle">
-                      ${this.config.title}
-                    </div>
-                  `
-                : nothing}
-            </div>
-          </header>
-        `
-      : nothing}
+        <header class="card-header">
+                ${this.config.logo ? html`<img
+                      src=${this.config.logo}
+                      alt=${this.config.title || "HeitzFit4"}
+                    />` : nothing}
+                ${this.config.title ? html`<h2>${this.config.title}</h2>` : l}
+        </header>
+            ` : nothing}
       ${this.refreshing
         ? html`
             <ha-linear-progress
