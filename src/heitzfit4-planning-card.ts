@@ -578,7 +578,7 @@ export class Heitzfit4PlanningCard extends LitElement {
                       src=${this.config.logo}
                       alt=${this.config.title || "HeitzFit4"}
                     />` : nothing}
-                ${this.config.title ? html`<h2>${this.config.title}</h2>` : l}
+                ${this.config.title ? html`<h2>${this.config.title}</h2>` : nothing}
         </header>
             ` : nothing}
       ${this.refreshing
