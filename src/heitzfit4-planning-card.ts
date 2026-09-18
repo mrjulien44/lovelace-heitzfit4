@@ -312,7 +312,6 @@ export class Heitzfit4PlanningCard extends LitElement {
     } catch {
       planning = "unserializable";
     }
-
     return [entity.last_updated ?? "", entity.state, planning].join("|");
   }
 
@@ -332,7 +331,6 @@ export class Heitzfit4PlanningCard extends LitElement {
       }
       await sleep(400);
     }
-
     return false;
   }
 
@@ -357,62 +355,44 @@ export class Heitzfit4PlanningCard extends LitElement {
   ) {
     return;
   }
-
   const activityId = String(activity.id);
-
   const wasBooked = activity.booked;
-
   const entityId = this.config.entity;
-
   const previousRevision =
     this.entityRevision(
       this.hass.states[entityId]
     );
 
   this.pendingActivityId = activityId;
-
   this.refreshing = true;
-
   this.errorMessage = undefined;
   this.successMessage = undefined;
 
   try {
-
     if (wasBooked) {
-
       if (
         activity.id_booking === undefined ||
         activity.id_booking === null ||
         activity.id_booking === ""
       ) {
-
         throw new Error(
           "Missing id_booking for cancellation"
         );
-
       }
 
-      console.log(
-        "Cancelling booking",
-        activity.id_booking
-      );
+      console.log("Cancelling booking",activity.id_booking);
 
       await this.hass.callService(
         "heitzfit4",
         "delete_activity",
         {
-          booking_id: String(
-            activity.id_booking
-          )
+          booking_id: String(activity.id_booking)
         }
       );
 
     } else {
 
-      console.log(
-        "Booking activity",
-        activity.id
-      );
+      console.log("Booking activity", activity.id);
 
       await this.hass.callService(
         "heitzfit4",
@@ -423,7 +403,6 @@ export class Heitzfit4PlanningCard extends LitElement {
       );
 
     }
-
     await this.hass.callService(
       "homeassistant",
       "update_entity",
@@ -431,68 +410,46 @@ export class Heitzfit4PlanningCard extends LitElement {
         entity_id: entityId
       }
     );
-
     const refreshed =
       await this.waitForEntityRefresh(
         entityId,
         previousRevision
       );
-
     const successMessage =
       wasBooked
         ? this.labels.cancelSuccess
         : this.labels.bookedSuccess;
-
     if (refreshed) {
-
       this.successMessage =
         successMessage;
-
       this.showToast(
         successMessage
       );
-
       this.requestUpdate();
-
     } else {
-
       this.errorMessage =
         this.labels.refreshTimeout;
-
       this.showToast(
         this.labels.refreshTimeout
       );
-
     }
-
   } catch (error) {
-
-    console.error(
-      "HeitzFit4 Planning Card action failed:",
-      error
-    );
-
+    console.error("HeitzFit4 Planning Card action failed:",error);
     if (
       error instanceof Error &&
       error.message.includes(
         "Missing id_booking"
       )
     ) {
-
       this.errorMessage =
         "id_booking absent pour cette réservation";
-
     } else {
-
       this.errorMessage =
         this.labels.actionError;
-
     }
-
     this.showToast(
       this.errorMessage
     );
-
   } finally {
 
     this.pendingActivityId =
@@ -578,7 +535,7 @@ export class Heitzfit4PlanningCard extends LitElement {
                       src=${this.config.logo}
                       alt=${this.config.title || "HeitzFit4"}
                     />` : nothing}
-                ${this.config.title ? html`<h2>${this.config.title}</h2>` : nothing}
+                ${this.config.title ? html`<div class="header-title"><div class="planning-title">${this.config.title}</div></div>` : nothing}
         </header>
             ` : nothing}
       ${this.refreshing
@@ -792,7 +749,7 @@ export class Heitzfit4PlanningCard extends LitElement {
         );
       color:
         var(--error-color, #db4437);
-      font-size: 18px;
+      font-size: 12px;
       font-weight: 900;
     }
 

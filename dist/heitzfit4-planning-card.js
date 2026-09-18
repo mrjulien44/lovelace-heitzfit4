@@ -732,23 +732,15 @@ let g = class extends w {
           throw new Error(
             "Missing id_booking for cancellation"
           );
-        console.log(
-          "Cancelling booking",
-          i.id_booking
-        ), await this.hass.callService(
+        console.log("Cancelling booking", i.id_booking), await this.hass.callService(
           "heitzfit4",
           "delete_activity",
           {
-            booking_id: String(
-              i.id_booking
-            )
+            booking_id: String(i.id_booking)
           }
         );
       } else
-        console.log(
-          "Booking activity",
-          i.id
-        ), await this.hass.callService(
+        console.log("Booking activity", i.id), await this.hass.callService(
           "heitzfit4",
           "book_activity",
           {
@@ -772,10 +764,7 @@ let g = class extends w {
         this.labels.refreshTimeout
       ));
     } catch (o) {
-      console.error(
-        "HeitzFit4 Planning Card action failed:",
-        o
-      ), o instanceof Error && o.message.includes(
+      console.error("HeitzFit4 Planning Card action failed:", o), o instanceof Error && o.message.includes(
         "Missing id_booking"
       ) ? this.errorMessage = "id_booking absent pour cette réservation" : this.errorMessage = this.labels.actionError, this.showToast(
         this.errorMessage
@@ -837,7 +826,7 @@ let g = class extends w {
                       src=${this.config.logo}
                       alt=${this.config.title || "HeitzFit4"}
                     />` : h}
-                ${this.config.title ? p`<h2>${this.config.title}</h2>` : h}
+                ${this.config.title ? p`<div class="header-title"><div class="planning-title">${this.config.title}</div></div>` : h}
         </header>
             ` : h}
       ${this.refreshing ? p`
@@ -1046,7 +1035,7 @@ g.styles = at`
         );
       color:
         var(--error-color, #db4437);
-      font-size: 18px;
+      font-size: 12px;
       font-weight: 900;
     }
 

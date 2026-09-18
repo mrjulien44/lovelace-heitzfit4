@@ -34,6 +34,6 @@ export interface CardConfig {
   only_booked?: boolean;
   show_actions?: boolean;
   logo?: string;
-  language?: "auto" | "fr" | "en";
   title?: string;
+  language?: "auto" | "fr" | "en";
 }
