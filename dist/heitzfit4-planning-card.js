@@ -539,7 +539,7 @@ var Dt = Object.defineProperty, Lt = Object.getOwnPropertyDescriptor, f = (i, t,
     (r = i[o]) && (n = (s ? r(t, e, n) : r(n)) || n);
   return s && n && Dt(t, e, n), n;
 };
-const jt = "1.3.0", I = {
+const jt = "1.3.15", I = {
   days: 7,
   only_booked: !1,
   show_actions: !0,

@@ -1,7 +1,7 @@
 import { LitElement, css, html, nothing, type TemplateResult } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
 
-const CARD_VERSION = "1.3.0";
+const CARD_VERSION = "1.3.15";
 
 type Language = "fr" | "en";
 type LanguageConfig = Language | "auto";
