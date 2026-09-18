@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "lint": "eslint src --ext .ts",
     "preversion": "npm run build",
-    "release": "npm version patch --force && git push origin main --follow-tags && gh release create v$npm_package_version --generate-notes"
+    "release": "npm version patch --force && git push origin main --follow-tags"
   },
   "repository": {
     "type": "git",
