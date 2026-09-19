@@ -544,7 +544,8 @@ const jt = "1.3.15", I = {
   only_booked: !1,
   show_actions: !0,
   hide_ongoing: !1,
-  language: "auto"
+  language: "auto",
+  title: "Planning"
 }, pt = {
   fr: {
     unavailable: "Entité indisponible",
@@ -608,7 +609,8 @@ let g = class extends w {
       only_booked: !1,
       show_actions: !0,
       hide_ongoing: !1,
-      logo: "/local/images/logo_globalfit.png",
+      //      logo: "/local/images/logo_globalfit.png",
+      logo: "/local/images/",
       language: "auto"
     };
   }

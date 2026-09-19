@@ -60,6 +60,7 @@ const DEFAULT_CONFIG = {
   show_actions: true,
   hide_ongoing: false,
   language: "auto" as LanguageConfig,
+  title: "Planning"
 };
 
 const TRANSLATIONS = {
@@ -138,7 +139,8 @@ export class Heitzfit4PlanningCard extends LitElement {
       only_booked: false,
       show_actions: true,
       hide_ongoing: false,
-      logo: "/local/images/logo_globalfit.png",
+//      logo: "/local/images/logo_globalfit.png",
+      logo: "/local/images/",
       language: "auto",
     };
   }
@@ -451,12 +453,9 @@ export class Heitzfit4PlanningCard extends LitElement {
       this.errorMessage
     );
   } finally {
-
     this.pendingActivityId =
       undefined;
-
     this.refreshing = false;
-
   }
 }
 
